@@ -1,0 +1,230 @@
+#include "/Engine/Public/Platform.ush"
+
+float4 Viewport;
+float2 RunnerPosition;
+float2 RunnerVector;
+float RotationMovementRadians;
+float LateralMovementMeters;
+float2 TurnPoint;
+float TurnAngleRadians;
+uint Stop;
+Buffer<float4> LinePoints;
+uint LinePointCount;
+float4x4 TransformMatrix;
+
+static const float M_SQRT_2 = 1.41421356237;
+static const float HALF_PI = 1.57079632679;
+static const float MAP_RADIUS_METERS = 15.0;
+static const float MAP_SIZE_METERS = MAP_RADIUS_METERS * 2.;
+static const float2 CENTER = float2(0.5, 0.5);
+
+static const float4 ORIGIN_POINT_COLOR = float4(0., 0., 1., .7);
+static const float4 MAP_BACKGROUND_COLOR = float4(0.5, 0.5, 0.5, 0.2);
+static const float4 TRANSPARENT = float4(0., 0., 0., 0.);
+
+static const float GRID_SIZE_METERS = 1.0;
+static const float GRID_LINE_PITCH  = GRID_SIZE_METERS / MAP_SIZE_METERS;
+static const float GRID_LINE_WIDTH = 0.007;
+static const float GRID_LINE_ANTIALIAS = 1.2;
+static const float4 GRID_LINE_COLOR = float4(0.2, 0.3, 0.6, 0.7);
+
+static const float GUIDELINE_POINT_RADIUS = 0.02;
+static const float4 GUIDELINE_POINT_COLOR = float4(1., 0.3, 0.3, 0.7);
+static const float4 GUIDELINE_ARROW_COLOR = float4(0.4, 0.1, 0.1, 0.7);
+static const uint GUIDELINE_ARROW_STRIDE = 4;
+static const float4 TURN_POINT_COLOR = float4(1., 0., 1., 0.7);
+static const float4 TURN_LINE_COLOR = float4(1., 0.2, 1., 0.7);
+static const float4 STOP_COLOR = float4(1.0, 0., 0., 0.7);
+static const float MOVEMENT_LINE_WIDTH = 0.009;
+static const float4 MOVEMENT_LINE_COLOR = float4(0.2, 0.8, 0.2, 1.0);
+
+static const float VIGNETTE_START = 0.45;
+static const float VIGNETTE_END = 0.5;
+
+float2 world_point_to_map(float2 w) {
+  w -= RunnerPosition;
+  w /= MAP_SIZE_METERS;
+  w += 0.5;
+  return w;
+}
+
+float distance_to_world_point(float2 p, float2 w) {
+  return distance(p, world_point_to_map(w));
+}
+
+float angle(float2 p1, float2 p2) {
+  return atan2(p2.x - p1.x, p2.y - p1.y);
+}
+
+float square(float2 p, float2 center, float size) {
+  if (max(abs(p.x - center.x), abs(p.y - center.y)) < size) {
+    return 1.;
+  }
+  return 0.;
+}
+
+float2x2 rotation2d(float angle) {
+  float s = sin(angle);
+  float c = cos(angle);
+  return float2x2(
+    c, -s,
+    s, c
+  );
+}
+
+float2 rotate(float2 v, float angle) {
+  return mul(v, rotation2d(angle));
+}
+
+float segment_distance(float2 p, float2 p1, float2 p2) {
+  float2 center = (p1 + p2) * 0.5;
+  float len = length(p2 - p1);
+  float2 dir = (p2 - p1) / len;
+  float2 rel_p = p - center;
+  float dist1 = abs(dot(rel_p, float2(dir.y, -dir.x)));
+  float dist2 = abs(dot(rel_p, dir)) - 0.5 * len;
+  return max(dist1, dist2);
+}
+
+float4 guideline_points(float2 p) {
+  if (distance(p, CENTER) < GUIDELINE_POINT_RADIUS) {
+    return ORIGIN_POINT_COLOR;
+  }
+
+  float4 color = TRANSPARENT;
+  [unroll(100)]
+  for (int i = 0; i < 100; i++) {
+    if (i < LinePointCount) {
+        float2 curr_point = LinePoints[i].xy;
+      
+        if (color.a == 0 && i % GUIDELINE_ARROW_STRIDE == 0 && i < LinePointCount - 1) {
+          float next_angle = angle(curr_point, LinePoints[i + 1].xy);
+          float2 arrow_p1 = float2(0, 0.01);
+          float2 arrow_p2 = float2(-0.02, -0.01);
+          float2 arrow_p3 = float2(0.02, -0.01);
+          arrow_p1 = rotate(arrow_p1, next_angle);
+          arrow_p2 = rotate(arrow_p2, next_angle);
+          arrow_p3 = rotate(arrow_p3, next_angle);
+          float2 world_point = world_point_to_map(curr_point);
+          arrow_p1 += world_point;
+          arrow_p2 += world_point;
+          arrow_p3 += world_point;
+
+          if (segment_distance(p, arrow_p1, arrow_p2) < MOVEMENT_LINE_WIDTH
+              || segment_distance(p, arrow_p1, arrow_p3)
+                  < MOVEMENT_LINE_WIDTH) {
+            color = GUIDELINE_ARROW_COLOR;
+          }
+        }
+        
+        if (color.a == 0 && distance_to_world_point(p, curr_point) < GUIDELINE_POINT_RADIUS) {
+          color = GUIDELINE_POINT_COLOR;
+        }
+    }
+  }
+
+  return color;
+}
+
+float4 guideline_control(float2 p, float2 rp) {
+  // Red square for stop signal.
+  if (Stop) {
+    return square(p, CENTER, 0.1) * STOP_COLOR;
+  }
+
+  // Render line representing lateral and rotational movement.
+  float movement_x = (LateralMovementMeters / MAP_SIZE_METERS);
+  float2 movement_p1 = float2(movement_x, -0.1);
+  float2 movement_p2 = float2(movement_x, 0.1);
+  float2 arrow_p1 = float2(movement_x - 0.02, 0.08);
+  float2 arrow_p2 = float2(movement_x + 0.02, 0.08);
+  movement_p1 = rotate(movement_p1, RotationMovementRadians);
+  movement_p2 = rotate(movement_p2, RotationMovementRadians);
+  arrow_p1 = rotate(arrow_p1, RotationMovementRadians);
+  arrow_p2 = rotate(arrow_p2, RotationMovementRadians);
+  movement_p1 += CENTER;
+  movement_p2 += CENTER;
+  arrow_p1 += CENTER;
+  arrow_p2 += CENTER;
+
+  if (segment_distance(p, movement_p1, movement_p2) < MOVEMENT_LINE_WIDTH
+     || segment_distance(p, movement_p2, arrow_p1) < MOVEMENT_LINE_WIDTH
+     || segment_distance(p, movement_p2, arrow_p2) < MOVEMENT_LINE_WIDTH) {
+    return MOVEMENT_LINE_COLOR;
+  }
+
+  // Render a circle and line for the turn point and angle.
+  if (abs(TurnAngleRadians) > 0.) {
+    if (distance_to_world_point(rp, TurnPoint) < GUIDELINE_POINT_RADIUS) {
+      return TURN_POINT_COLOR;
+    }
+
+    float2 turn_p1 = float2(0, -0.1);
+    float2 turn_p2 = float2(0, 0.1);
+    turn_p1 = rotate(turn_p1, TurnAngleRadians);
+    turn_p2 = rotate(turn_p2, TurnAngleRadians);
+    float2 turn_point_center = world_point_to_map(TurnPoint);
+    turn_p1 += turn_point_center;
+    turn_p2 += turn_point_center;
+
+    if (segment_distance(rp, turn_p1, turn_p2) < MOVEMENT_LINE_WIDTH) {
+      return TURN_LINE_COLOR;
+    }
+  }
+
+  return TRANSPARENT;
+}
+
+float4 blend(float4 under, float4 over) {
+  float4 result = lerp(under, over, over.a);
+  result.a = over.a + under.a * (1.0 - over.a);
+
+  return result;
+}
+
+float4 draw_grid(float2 p) {
+  float2 grid_coords = p.xy + (RunnerPosition / MAP_SIZE_METERS);
+
+  float dist = min(
+      fmod(grid_coords.x, GRID_LINE_PITCH),
+      fmod(grid_coords.y, GRID_LINE_PITCH));
+
+  if (dist < GRID_LINE_WIDTH) {
+    return GRID_LINE_COLOR * (1.0 -
+        smoothstep(GRID_LINE_WIDTH / GRID_LINE_ANTIALIAS,
+                   GRID_LINE_WIDTH, dist));
+  }
+
+  return TRANSPARENT;
+}
+
+void PixelMain(
+    float4 InPosition : SV_POSITION,
+    float2 InTextureCoords : TEXTCOORD0,
+    out float4 OutColor : SV_Target0)
+{
+  float2 screen_coords = InPosition.xy - Viewport.xy;
+  screen_coords.x /= Viewport.z;
+  screen_coords.y /= Viewport.w;
+  screen_coords.y = 1. - screen_coords.y;
+  float2 rotated_screen_coords = (mul(float4(screen_coords.x,
+                                  screen_coords.y, 0., 1.), TransformMatrix)).xy;
+
+  OutColor = MAP_BACKGROUND_COLOR;
+  OutColor = blend(OutColor, draw_grid(rotated_screen_coords));
+
+  OutColor = blend(OutColor,
+                   guideline_points(rotated_screen_coords));
+  OutColor = blend(OutColor,
+                   guideline_control(screen_coords,
+                                     rotated_screen_coords));
+
+  // Apply vignette.
+  float dist = distance(screen_coords, CENTER);
+  if (dist > VIGNETTE_END) {
+    discard;
+  } else if (dist > VIGNETTE_START && dist < VIGNETTE_END) {
+      OutColor.a *=
+        (1.0 - smoothstep(VIGNETTE_START, VIGNETTE_END, dist));
+  }
+}

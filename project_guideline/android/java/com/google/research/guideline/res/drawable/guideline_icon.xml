@@ -1,0 +1,50 @@
+<!--
+ Copyright 2023 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+-->
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  <group android:scaleX="0.27"
+      android:scaleY="0.27">
+    <path
+        android:pathData="M0,0h400v148h-400z"
+        android:strokeWidth="1"
+        android:fillColor="#5BDCFF"
+        android:fillType="nonZero"
+        android:strokeColor="#00000000"/>
+    <path
+        android:pathData="M0,148C122.943,138.243 207.355,133.365 253.236,133.365C299.117,133.365 348.039,138.243 400,148L400,400L0,400L0,148Z"
+        android:strokeWidth="1"
+        android:fillColor="#00AC03"
+        android:fillType="nonZero"
+        android:strokeColor="#00000000"/>
+    <path
+        android:pathData="M249.492,133.309C256.538,133.341 261.985,133.4 265.834,133.486C269.683,133.571 274.755,133.746 281.049,134.009L368.54,400L18.284,400L249.492,133.309Z"
+        android:strokeWidth="1"
+        android:fillColor="#686868"
+        android:fillType="nonZero"
+        android:strokeColor="#00000000"/>
+    <path
+        android:pathData="M264.214,133.469l1.44,-0.014l-54.451,266.546l-30.818,0z"
+        android:strokeWidth="1"
+        android:fillColor="#B83DFF"
+        android:fillType="nonZero"
+        android:strokeColor="#00000000"/>
+  </group>
+</vector>

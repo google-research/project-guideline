@@ -1,0 +1,228 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package guideline;
+
+import "google/protobuf/duration.proto";
+
+// option cc_api_version = 2;
+// option java_api_version = 2;
+option java_multiple_files = true;
+option java_package = "com.google.research.guideline.proto";
+option optimize_for = LITE_RUNTIME;
+
+// Configuration for the Guideline Engine.
+// Next available index: 9
+message GuidelineEngineConfig {
+  message FileDescriptor {
+    optional int32 fd = 1;
+    optional int64 length = 2;
+    optional int64 offset = 3;
+  }
+
+  // Options for the line detector.
+  message DetectorOptions {
+    // TFlite files for the ML pipeline.
+    message ModelFiles {
+      optional FileDescriptor model_fd = 1;
+      optional FileDescriptor labelmap_fd = 2;
+    }
+
+    // Can be used to override the segmenter model using external TFLite model
+    // and labelmap files.
+    optional ModelFiles model_files = 1;
+    optional KeypointExtractorOptions keypoint_extractor_options = 2;
+
+    // Enables the segmentation subgraph, also required for depth.
+    optional bool use_subgraph = 3;
+  }
+
+  optional DetectorOptions detector_options = 1;
+  optional GuidelineAggregatorOptions guideline_aggregator_options = 2;
+  optional ControlSystemOptions control_system_options = 3;
+  optional HumanRepresentationOptions human_representation_options = 4;
+  optional GuidanceSystemOptions guidance_system_options = 5;
+  optional OccupancyMapOptions occupancy_map_options = 6;
+  optional PointCloudOptions point_cloud_options = 7;
+  optional AudioSystemOptions audio_system_options = 8;
+}
+
+message KeypointExtractorOptions {
+  oneof keypoint_extractor_options {
+    HorizontalBlockKeypointExtractorOptions
+        horizontal_block_keypoint_extractor_options = 1;
+  }
+}
+
+message HorizontalBlockKeypointExtractorOptions {
+  optional int32 block_size = 1 [default = 4];
+  optional int32 block_overlap = 2 [default = 2];
+}
+
+message AudioSystemOptions {
+  oneof sound_pack {
+    LegacySoundPackOptions legacy_sound_pack_options = 1;
+  }
+}
+
+message LegacySoundPackOptions {
+  enum LegacySoundPackType {
+    V0 = 0;
+    V4_0 = 1;
+    V4_1 = 2;
+    V4_2 = 3;
+  }
+  optional LegacySoundPackType type = 1;
+  optional float max_rotation_degrees = 2 [default = 45];
+  optional float sensitivity_curvature = 3 [default = 0.4];
+  optional float warning_threshold_meters = 4 [default = 1.5];
+}
+
+message PointCloudOptions {
+  optional FrameBasedPointCloudOptions frame_based_point_cloud_options = 1;
+}
+
+message FrameBasedPointCloudOptions {
+  optional int32 subsample_step = 1 [default = 1];
+}
+
+message OccupancyMapOptions {
+  optional FrameBasedOccupancyMapOptions frame_based_occupancy_map_options = 1;
+}
+
+message FrameBasedOccupancyMapOptions {
+  optional float occupancy_threshold = 1 [default = 5];
+  optional ClearanceZoneOptions clearance_zone_options = 2;
+  optional float point_confidence_threshold = 3 [default = 0.1];
+}
+
+message ClearanceZoneOptions {
+  // The width of the clearance zone (meters).
+  optional int32 width = 1 [default = 4];
+  // The depth of the clearance zone (meters).
+  optional int32 depth = 2 [default = 5];
+  // The bottom of the clearance zone relative to the camera position (meters).
+  optional float bottom = 3 [default = -0.5];
+  // The top of the clearance zone relative to the camera position (meters).
+  optional float top = 4 [default = 1.2];
+}
+
+message HumanRepresentationOptions {
+  optional CameraPoseBasedHumanOptions camera_pose_based_human_options = 1;
+}
+
+message CameraPoseBasedHumanOptions {
+  optional int32 max_history_to_keep = 1 [default = 300];
+  optional google.protobuf.Duration velocity_window = 2;
+}
+
+message GuidelineAggregatorOptions {
+  oneof guideline_aggregator_options {
+    SortedGuidelineBoxPointAggregatorOptions
+        sorted_guideline_box_point_aggregator_options = 1;
+    LocalTemporalRegressionBasedGuidelineAggregatorOptions
+        local_temporal_regression_based_guideline_aggregator_options = 2;
+  }
+}
+
+// Configuration of SortedGuidelineBoxPointAggregator for building stateful
+// representation of the guideline.
+// TODO(b/213364770): Find optimal hyper parameters.
+message SortedGuidelineBoxPointAggregatorOptions {
+  // GuidelineBoxPoint size.
+  optional float box_size_meters = 1 [default = 1];
+  // confidence and number of points thresholds for selecting points for
+  // spline fitting.
+  optional float confidence_threshold = 2 [default = 0.5];
+  optional float num_points_threshold = 3 [default = 3];
+  // How many meters a single spline fit.
+  optional float num_meters_per_spline = 4 [default = 2];
+  // How many meters to forward and backward extrapolate the fitted spline.
+  optional float forward_extrapolation_meters = 5 [default = 5];
+  optional float backward_extrapolation_meters = 6 [default = 5];
+  // Number of guideline points to fit for every meter. Total number of points
+  // returned will distance covered by guideline, including forward and
+  // backward extrapolation, multiplied by this value.
+  optional float num_guideline_points_per_meter = 7 [default = 1];
+  optional int32 max_history_to_keep = 8 [default = 150];
+}
+
+message LocalTemporalRegressionBasedGuidelineAggregatorOptions {
+  optional int32 time_interval_size = 1 [default = 60];
+  optional int32 time_interval_overlap = 2 [default = 15];
+  optional int32 fitted_curve_degree = 3 [default = 2];
+  optional float max_distance_for_closest_point_meters = 4 [default = 2];
+  // How many meters to forward and backward extrapolate the fitted spline.
+  optional float forward_extrapolation_meters = 5 [default = 5];
+  optional float backward_extrapolation_meters = 6 [default = 5];
+  // Number of guideline points to fit for every meter. Total number of points
+  // returned will distance covered by guideline, including forward and
+  // backward extrapolation, multiplied by this value.
+  optional float num_guideline_points_per_meter = 7 [default = 1];
+  optional int32 max_history_to_keep = 8 [default = 150];
+  optional bool use_fitted_curve_for_extrapolation = 9 [default = true];
+}
+
+message ControlSystemOptions {
+  optional SimpleControlSystemOptions simple_control_system_options = 1;
+}
+
+// Configuration for simple control system.
+// TODO(b/213364770): Find optimal hyper parameters.
+message SimpleControlSystemOptions {
+  // For computing the raw control signal.
+  optional int32 num_guideline_points_per_meter = 1 [default = 1];
+  optional float intermediate_guideline_point_distance_meters = 2 [default = 6];
+  optional float distance_per_guideline_segment_meters = 3 [default = 3];
+  optional int32 max_num_guideline_segments_to_use = 4 [default = 5];
+  optional float turn_angle_threshold_degrees = 5 [default = 15];
+  optional int32 lateral_stop_min_consecutive_frames = 6 [default = 20];
+  optional float lateral_movement_abs_min_threshold_meters = 7 [default = 0];
+  optional float lateral_movement_abs_max_threshold_meters = 8 [default = 2];
+  optional float rotational_movement_abs_min_threshold_degrees = 9
+      [default = 0];
+  optional float rotational_movement_abs_max_threshold_degrees = 10
+      [default = 90];
+  optional int32 max_history_to_keep = 11 [default = 300];
+  optional float min_turn_point_distance_meters = 12 [default = 2];
+  optional float track_width_meters = 13 [default = 3];
+  optional uint32 obstacle_smoothing_min_interval_frames = 14 [default = 15];
+  optional uint32 obstacle_smoothing_window_frames = 15 [default = 30];
+}
+
+message GuidanceSystemOptions {
+  optional google.protobuf.Duration eager_stop_threshold = 1;
+  // For enabling obstacle detection. When enabled, guideline system computes
+  // point cloud and occupancy map from the depth map, also enables STOP signal
+  // in case of obstacles within certain region.
+  // If set to true, then one of 'use_arcore_for_depth' or
+  // 'DetectorOptions.use_subgraph' must also be true.
+  optional bool enable_obstacle_detection = 2;
+
+  // Whether to use ARCore depth maps when obstacle detection is enabled.
+  optional bool use_arcore_for_depth = 3;
+
+  // Disables guideline guidance and only alerts for obstacles.
+  optional bool obstacle_only_mode = 4;
+
+  // The height of the camera above the ground.
+  // TODO(b/211624301): Configure this parameter through a calibration step.
+  optional float camera_height_meters = 5 [default = 1];
+
+  // If true, a RANSAC solver is used to align ML depth map with tracked VIO
+  // features.
+  optional bool align_depth_with_features = 6 [default = true];
+}

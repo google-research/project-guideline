@@ -1,0 +1,13 @@
+diff --git a/workspace_defs.bzl b/workspace_defs.bzl
+index 76520ec68..c28cd59fb 100644
+--- a/workspace_defs.bzl
++++ b/workspace_defs.bzl
+@@ -181,6 +181,8 @@ def hilt_android_rules(repo_name = "@maven"):
+             "%s//:com_google_dagger_dagger" % repo_name,  # For Dagger APIs
+             "%s//:javax_inject_javax_inject" % repo_name,  # For @Inject
+             "%s//:androidx_annotation_annotation" % repo_name,  # For @CallSuper
++            "%s//:androidx_activity_activity" % repo_name,  # For OnContextAvailableListener
++            "%s//:androidx_lifecycle_lifecycle_viewmodel" % repo_name,  # For DefaultViewModelProviderFactory
+             "%s//:com_google_dagger_hilt_android" % repo_name,
+             "%s//:com_google_dagger_hilt_core" % repo_name,
+             "%s//:javax_annotation_javax_annotation_api" % repo_name,  # For @Generated
