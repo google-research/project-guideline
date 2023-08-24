@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(
-    default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//:internal",
-    ],
-)
+package(default_applicable_licenses = ["//:license"])
 
 cc_library(
     name = "android_audio_output_stream",
