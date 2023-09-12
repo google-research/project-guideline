@@ -118,8 +118,8 @@ absl::Status DepthAlignmentCalculator::Process(CalculatorContext* cc) {
       << "Camera params must have 6 values [w, h, fx, fy, cx, cy]";
 
   Transformation world_t_camera = Transformation(
-      util::Quaternion(camera_pose_vector(3), camera_pose_vector(0),
-                       camera_pose_vector(1), camera_pose_vector(2)),
+      util::Quaternion(camera_pose_vector(6), camera_pose_vector(3),
+                       camera_pose_vector(4), camera_pose_vector(5)),
       camera_pose_vector.head<3>());
 
   camera::CvCameraModel camera_model(camera_params_vector(0),
@@ -141,7 +141,7 @@ absl::Status DepthAlignmentCalculator::Process(CalculatorContext* cc) {
     Eigen::Vector2d pixel;
     if (camera_model.PointToPixel(camera_t_landmark.p(), pixel)) {
       image_normalized_features.emplace_back(pixel.x(), pixel.y(),
-                                             landmark.z());
+                                             camera_t_landmark.p().z());
     }
   }
 

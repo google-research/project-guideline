@@ -144,6 +144,11 @@ TEST(ObstacleDetectionTest, DetectObstacles) {
   camera_pose1.row(0) << 0, 0, 0, forward_y.q().x(), forward_y.q().y(),
       forward_y.q().z(), forward_y.q().w();
 
+  util::Transformation world_t_camera = util::Transformation(
+      util::Quaternion(camera_pose1(6), camera_pose1(3),
+                       camera_pose1(4), camera_pose1(5)),
+      camera_pose1.cast<double>().row(0).head<3>());
+
   GL_ASSERT_OK(graph.AddPacketToInputStream(
       "camera_pose",
       mediapipe::MakePacket<mediapipe::Matrix>(camera_pose1).At(t1)));
@@ -175,8 +180,10 @@ TEST(ObstacleDetectionTest, DetectObstacles) {
       Eigen::Vector3d ray;
       ASSERT_TRUE(camera_model.PixelToRay({x, y}, ray));
       double depth = 1.0 / (input_inv_depth.at(y, x) * kInvScale + kInvShift);
-      ray = ray * (depth / ray.z());
-      AddLandmark(landmarks, ray.x(), ray.y(), ray.z());
+      auto camera_t_point = ray * (depth / ray.z());
+      auto world_t_point = world_t_camera * camera_t_point;
+      AddLandmark(landmarks, world_t_point.x(), world_t_point.y(),
+                  world_t_point.z());
     }
   }
   auto input_landmarks_packet =
