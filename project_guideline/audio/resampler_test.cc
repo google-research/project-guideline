@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "project_guideline/audio/resampler.h"
+#include <cstddef>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -104,57 +105,62 @@ TEST(Resampler, ResampleChunk) {
   size_t output_index = 0;
   size_t input_index = 0;
   float playback_rate = 1.0f;
-  size_t num_frames = frames_4;
-  size_t num_frames_copied =
-      Resampler::ResampleChunk((*audio)[0], buffer[0], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[1], buffer[1], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
+  size_t max_output_frames = frames_4;
+  size_t num_input_frames_advanced = 0;
+  size_t num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[0], buffer[0], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[1], buffer[1], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  ASSERT_EQ(num_input_frames_advanced, num_frames_copied);
 
   // Next 1/4 of audio sped up (pitch increase).
   output_index += num_frames_copied;
   input_index = frames_4;
   playback_rate = 1.2f;
-  num_frames = frames_4 / playback_rate;
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[0], buffer[0], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[1], buffer[1], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
+  max_output_frames = frames_4 / playback_rate;
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[0], buffer[0], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[1], buffer[1], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  ASSERT_GT(num_input_frames_advanced, num_frames_copied);
 
   // Next 1/4 of audio slowed down (pitch decrease).
   output_index += num_frames_copied;
   input_index = frames_4 * 2;
   playback_rate = 0.7f;
-  num_frames = frames_4 / playback_rate;
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[0], buffer[0], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[1], buffer[1], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
+  max_output_frames = frames_4 / playback_rate;
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[0], buffer[0], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[1], buffer[1], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  ASSERT_LT(num_input_frames_advanced, num_frames_copied);
 
   // Final 1/4 of audio normal speed
   output_index += num_frames_copied;
   input_index = frames_4 * 3;
   playback_rate = 1.0f;
-  num_frames = frames_4 / playback_rate;
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[0], buffer[0], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
-  num_frames_copied =
-      Resampler::ResampleChunk((*audio)[1], buffer[1], playback_rate,
-                               input_index, output_index, num_frames);
-  ASSERT_EQ(num_frames_copied, num_frames);
+  max_output_frames = frames_4 / playback_rate;
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[0], buffer[0], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  num_frames_copied = Resampler::ResampleChunk(
+      (*audio)[1], buffer[1], playback_rate, input_index, output_index,
+      max_output_frames, num_input_frames_advanced);
+  ASSERT_EQ(num_frames_copied, max_output_frames);
+  ASSERT_EQ(num_input_frames_advanced, num_frames_copied);
 
   // Encode the resampled audio file which can be manually inspected for
   // audio artifacts / correctness.

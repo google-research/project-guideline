@@ -32,11 +32,15 @@ class Resampler {
   // Resamples a chunk of input to output at the given playback rate. This
   // may be used to dynamically pitch shift the input, if the output is
   // interpreted at the same sample rate as input.
+  // Returns the number of frames copied to the output buffer.
+  // num_frames_advanced will be set to the number of input frames used, which
+  // may be different than the number of output frames when playback_rate != 1.0
   static size_t ResampleChunk(const std::vector<float>& input,
                               std::vector<float>& output, float playback_rate,
                               size_t start_input_index,
                               size_t start_output_index,
-                              size_t num_output_frames);
+                              size_t max_frames_to_copy,
+                              size_t& num_frames_advanced);
 
   int input_sample_rate_hz() const { return input_sample_rate_hz_; }
   int output_sample_rate_hz() const { return output_sample_rate_hz_; }

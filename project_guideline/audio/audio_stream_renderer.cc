@@ -22,9 +22,12 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/check.h"
 #include "absl/memory/memory.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "project_guideline/audio/audio_buffer.h"
 #include "project_guideline/audio/resampler.h"
 #include "project_guideline/audio/vorbis_stream_decoder.h"
 #include "project_guideline/util/status.h"
@@ -150,39 +153,52 @@ const float** AudioStreamRenderer::GetNextBuffer() {
   while (num_frames_in_output_buffer < frames_per_buffer_) {
     const size_t num_frames_available_for_playback =
         num_data_frames - data_position_;
-    const size_t num_frames_left_in_buffer =
+    const size_t num_output_frames_remaining =
         frames_per_buffer_ - num_frames_in_output_buffer;
-    const size_t num_frames_to_copy =
-        std::min(num_frames_available_for_playback, num_frames_left_in_buffer);
-    size_t num_frames_copied = 0;
-    size_t new_data_position = data_position_;
 
+    size_t num_data_frames_advanced = 0;
+    size_t num_frames_copied = 0;
     for (size_t channel = 0; channel < num_channels; ++channel) {
       // Support mono -> stereo
       size_t input_channel = std::min(channel, audio_data_->size() - 1);
 
-      num_frames_copied = 0;
       std::vector<float>& input_data = (*audio_data_)[input_channel];
       std::vector<float>& output_data = output_buffer_[channel];
 
+      size_t channel_num_frames_copied = 0;
+      size_t channel_num_data_frames_advanced = 0;
       if (has_playback_rate_) {
         // This code dynamically resamples the audio to change the playback
         // rate. This is optimized for frequent calls to SetPlaybackRate().
         // If the playback rate were not changed frequently we could use
         // the Resampler to resample the entire stream upfront.
-        num_frames_copied += Resampler::ResampleChunk(
-            input_data, output_data, playback_rate_, data_position_,
-            num_frames_in_output_buffer, num_frames_to_copy);
+        channel_num_frames_copied = Resampler::ResampleChunk(
+            input_data, output_data, playback_rate_,
+            /*start_input_index=*/data_position_,
+            /*start_output_index=*/num_frames_in_output_buffer,
+            /*max_frames_to_copy=*/num_output_frames_remaining,
+            /*num_frames_advanced=*/channel_num_data_frames_advanced);
       } else {
+        const size_t num_frames_to_copy = std::min(
+            num_frames_available_for_playback, num_output_frames_remaining);
         std::copy_n(&input_data[data_position_], num_frames_to_copy,
                     &(output_data[num_frames_in_output_buffer]));
-        num_frames_copied = num_frames_to_copy;
-        new_data_position = data_position_ + num_frames_to_copy;
+        channel_num_frames_copied = num_frames_to_copy;
+        channel_num_data_frames_advanced = num_frames_to_copy;
+      }
+
+      if (channel == 0) {
+        num_frames_copied = channel_num_frames_copied;
+        num_data_frames_advanced = channel_num_data_frames_advanced;
+      } else {
+        // Must be the same number of frames copied to each channel.
+        CHECK(channel_num_frames_copied == num_frames_copied &&
+              channel_num_data_frames_advanced == num_data_frames_advanced);
       }
     }
 
     num_frames_in_output_buffer += num_frames_copied;
-    data_position_ = new_data_position;
+    data_position_ += num_data_frames_advanced;
     data_position_ %= num_data_frames;
     if (data_position_ == 0) {
       if (loop_) {
