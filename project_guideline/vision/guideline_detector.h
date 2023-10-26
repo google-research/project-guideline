@@ -34,8 +34,8 @@ class GuidelineDetector {
  public:
   using DetectionCallback = std::function<void(
       const int64_t timestamp_us, const std::vector<Eigen::Vector3f>& keypoints,
-      const util::ConfidenceMask& guideline_mask,
-      const util::DepthImage& depth_map)>;
+      std::shared_ptr<const util::ConfidenceMask> guideline_mask,
+      std::shared_ptr<const util::DepthImage> depth_map)>;
 
   static absl::StatusOr<std::unique_ptr<GuidelineDetector>> Create(
       const GuidelineEngineConfig_DetectorOptions& options);

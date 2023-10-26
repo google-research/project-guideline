@@ -238,10 +238,11 @@ absl::Status GuidelineDetector::ProcessImage(const util::Image& image) {
     });
   }
 
-  util::DepthImage depth_image(depth_mask.width(), depth_mask.height(),
-                               std::move(depth_mat), {},
-                               std::make_unique<MediaPipeScopedData>(
-                                   depth_mask.GetImageFrameSharedPtr()));
+  auto depth_image = std::make_shared<util::DepthImage>(
+      depth_mask.width(), depth_mask.height(), std::move(depth_mat),
+      util::ImageMetadata(),
+      std::make_unique<MediaPipeScopedData>(
+          depth_mask.GetImageFrameSharedPtr()));
 
   auto mask_mat = std::make_unique<cv::Mat>(mediapipe::formats::MatView(
       guideline_mask.GetImageFrameSharedPtr().get()));
@@ -255,8 +256,9 @@ absl::Status GuidelineDetector::ProcessImage(const util::Image& image) {
                       ExtractLineKeypointsFromMask(
                           *mask_mat, options_.keypoint_extractor_options()));
 
-  util::ConfidenceMask mask_image(
-      guideline_mask.width(), guideline_mask.height(), std::move(mask_mat), {},
+  auto mask_image = std::make_shared<util::ConfidenceMask>(
+      guideline_mask.width(), guideline_mask.height(), std::move(mask_mat),
+      util::ImageMetadata(),
       std::make_unique<MediaPipeScopedData>(
           guideline_mask.GetImageFrameSharedPtr()));
 

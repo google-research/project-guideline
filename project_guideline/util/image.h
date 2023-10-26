@@ -91,9 +91,7 @@ template <enum ImageFormat Format, typename DataType, typename Enabled = void>
 class TypedImage;
 
 template <enum ImageFormat Format, typename DataType>
-class TypedImage<Format, DataType,
-                 typename std::enable_if<std::is_arithmetic_v<DataType>>::type>
-    : public Image {
+class TypedImage<Format, DataType> : public Image {
  public:
   TypedImage(uint16_t width, uint16_t height,
              std::unique_ptr<const cv::Mat> data,

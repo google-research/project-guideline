@@ -24,6 +24,7 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/time/time.h"
+#include "Eigen/Core"
 #include "project_guideline/depth/depth_align_ransac.h"
 #include "project_guideline/depth/point_cloud_util.h"
 #include "project_guideline/environment/obstacle.h"
@@ -290,10 +291,10 @@ void GuidanceSystem::UpdateStatefulRepresentation(
   }
 }
 
-void GuidanceSystem::OnDetection(const int64_t timestamp_us,
-                                 const std::vector<Eigen::Vector3f>& keypoints,
-                                 const util::ConfidenceMask& guideline_mask,
-                                 const util::DepthImage& depth_map) {
+void GuidanceSystem::OnDetection(
+    const int64_t timestamp_us, const std::vector<Eigen::Vector3f>& keypoints,
+    std::shared_ptr<const util::ConfidenceMask> guideline_mask,
+    std::shared_ptr<const util::DepthImage> depth_map) {
   Transformation world_t_camera;
   PendingFeatures features;
   {
@@ -313,8 +314,8 @@ void GuidanceSystem::OnDetection(const int64_t timestamp_us,
 
   std::shared_ptr<CameraModel> camera_model = GetCameraModel();
 
-  if (options_.enable_obstacle_detection() && !depth_map.data().empty()) {
-    ProcessDepthMap(timestamp_us, world_t_camera, depth_map, features);
+  if (options_.enable_obstacle_detection() && !depth_map->data().empty()) {
+    ProcessDepthMap(timestamp_us, world_t_camera, *depth_map, features);
   }
 
   GuidelineLogEvent event;

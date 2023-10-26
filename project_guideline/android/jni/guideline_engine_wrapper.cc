@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/functional/bind_front.h"
 #include "absl/log/check.h"
@@ -39,6 +40,7 @@
 #include "project_guideline/logging/guideline_logger.h"
 #include "project_guideline/logging/noop_guideline_logger.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
+#include "project_guideline/util/image.h"
 #include "project_guideline/util/status.h"
 
 namespace guideline {
@@ -123,14 +125,15 @@ GuidelineEngineWrapper::Create(jobject app_context,
                               audio_output_stream, logger));
 
   auto engine_wrapper = absl::WrapUnique(new GuidelineEngineWrapper(
-      app_context, arcore_session, std::move(guideline_engine)));
+      app_context, arcore_session, std::move(guideline_engine), config));
   GL_RETURN_IF_ERROR(engine_wrapper->Initialize());
   return engine_wrapper;
 }
 
 GuidelineEngineWrapper::GuidelineEngineWrapper(
     jobject app_context, std::shared_ptr<ArcoreSession> arcore_session,
-    std::unique_ptr<engine::GuidelineEngine> guideline_engine)
+    std::unique_ptr<engine::GuidelineEngine> guideline_engine,
+    const GuidelineEngineConfig& config)
     : app_context_(app_context),
       arcore_session_(arcore_session),
       guideline_engine_(std::move(guideline_engine)),
@@ -159,8 +162,8 @@ absl::Status GuidelineEngineWrapper::Initialize() {
   guideline_engine_->guideline_detector().AddCallback(
       [this](const int64_t timestamp_ns,
              const std::vector<Eigen::Vector3f>& keypoints,
-             const util::ConfidenceMask& guideline_mask,
-             const util::DepthImage& depth_map) {
+             std::shared_ptr<const util::ConfidenceMask> guideline_mask,
+             std::shared_ptr<const util::DepthImage> depth_map) {
         auto guideline = guideline_engine_->guidance_system().GetGuideline();
         if (guideline.ok()) {
           environment_map_renderer_.OnGuideline(*guideline);

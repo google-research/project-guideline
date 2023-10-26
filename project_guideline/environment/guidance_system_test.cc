@@ -101,11 +101,11 @@ util::ConfidenceImageU8 CreateArConfidenceImage(int width, int height,
       width, height, std::make_unique<cv::Mat>(std::move(confidence_mat)));
 }
 
-util::ConfidenceMask CreateEmptyConfidenceMask() {
+std::shared_ptr<const util::ConfidenceMask> CreateEmptyConfidenceMask() {
   constexpr size_t kConfidenceMaskWidth = 64;
   constexpr size_t kConfidenceMaskHeight = 64;
   cv::Mat confidence_mat(kConfidenceMaskHeight, kConfidenceMaskWidth, CV_32FC1);
-  return util::ConfidenceMask(
+  return std::make_shared<const util::ConfidenceMask>(
       kConfidenceMaskWidth, kConfidenceMaskHeight,
       std::make_unique<cv::Mat>(std::move(confidence_mat)));
 }
@@ -206,9 +206,10 @@ TEST(GuidanceSystemTest, ControlSignals) {
     guidance_system->OnCameraPose(++timestamp, t, kCameraModel);
     guidance_system->OnDetection(
         timestamp, keypoints, CreateEmptyConfidenceMask(),
-        util::DepthImage(kDepthMapWidth, kDepthMapHeight,
-                         std::make_unique<cv::Mat>(kDepthMapHeight,
-                                                   kDepthMapWidth, CV_32FC1)));
+        std::make_shared<util::DepthImage>(
+            kDepthMapWidth, kDepthMapHeight,
+            std::make_unique<cv::Mat>(kDepthMapHeight, kDepthMapWidth,
+                                      CV_32FC1)));
   }
 
   EXPECT_TRUE(signal.has_value());
@@ -240,7 +241,8 @@ TEST(GuidanceSystemTest, ControlSignals) {
     guidance_system->OnCameraPose(++timestamp, t, kCameraModel);
     guidance_system->OnDetection(
         timestamp, keypoints, CreateEmptyConfidenceMask(),
-        CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0));
+        std::make_shared<util::DepthImage>(
+            CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0)));
   }
 
   EXPECT_NEAR(signal->lateral_movement_meters, -0.24, 0.05);
@@ -273,7 +275,8 @@ TEST(GuidanceSystemTest, TrackingStopSignal) {
     guidance_system->OnCameraPose(/*timestamp_us=*/i, t, kCameraModel);
     guidance_system->OnDetection(
         /*timestamp_us=*/i, keypoints, CreateEmptyConfidenceMask(),
-        CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0));
+        std::make_shared<util::DepthImage>(
+            CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0)));
   }
 
   guidance_system->OnTrackingStateChanged(false);
@@ -293,8 +296,8 @@ TEST(GuidanceSystemTest, EagerStopWithoutOption) {
       util::LookAt({0, 0, 0}, {1, 1, -1}, Eigen::Vector3d::UnitZ());
   std::vector<Eigen::Vector3f> emptyKeypoints;
 
-  util::DepthImage depth_map =
-      CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0);
+  auto depth_map = std::make_shared<util::DepthImage>(
+      CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0));
   guidance_system->OnCameraPose(/*timestamp_us=*/0, t, kCameraModel);
   guidance_system->OnDetection(/*timestamp_us=*/0, emptyKeypoints,
                                CreateEmptyConfidenceMask(), depth_map);
@@ -324,8 +327,8 @@ TEST(GuidanceSystemTest, EmptyKeypointsStopSignal) {
   std::vector<Eigen::Vector3f> NonEmptyKeypoints;
   NonEmptyKeypoints.emplace_back(0.5, 0.5, 1);
 
-  util::DepthImage depth_map =
-      CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0);
+  auto depth_map = std::make_shared<util::DepthImage>(
+      CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0));
   guidance_system->OnCameraPose(/*timestamp_us=*/0, t, kCameraModel);
   guidance_system->OnDetection(/*timestamp_us=*/0, emptyKeypoints,
                                CreateEmptyConfidenceMask(), depth_map);
@@ -393,7 +396,8 @@ TEST(GuidanceSystemTest, ObstacleDetectionArDepth) {
     guidance_system->OnArDepth(i, depth_image, confidence_image);
     guidance_system->OnDetection(
         /*timestamp_us=*/i, keypoints, CreateEmptyConfidenceMask(),
-        CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0));
+        std::make_shared<util::DepthImage>(
+            CreateDepthImage(kDepthMapWidth, kDepthMapHeight, 0)));
   }
   ASSERT_FALSE(signal->stop);
   ASSERT_FALSE(signal->obstacle_ahead);
@@ -448,8 +452,9 @@ TEST(GuidanceSystemTest, ObstacleDetectionDepthMap) {
     keypoints.emplace_back(keypoint);
   }
 
-  util::DepthImage depth_map(kDepthMapWidth, kDepthMapHeight,
-                             std::make_unique<cv::Mat>(depth_mat.clone()));
+  auto depth_map = std::make_shared<util::DepthImage>(
+      kDepthMapWidth, kDepthMapHeight,
+      std::make_unique<cv::Mat>(depth_mat.clone()));
   for (int i = 0; i < 10; ++i) {
     guidance_system->OnCameraPose(/*timestamp_us=*/i, look_forward,
                                   kCameraModel);
@@ -470,9 +475,9 @@ TEST(GuidanceSystemTest, ObstacleDetectionDepthMap) {
     }
   }
 
-  util::DepthImage depth_map2 =
-      util::DepthImage(kDepthMapWidth, kDepthMapHeight,
-                       std::make_unique<cv::Mat>(depth_mat.clone()));
+  auto depth_map2 = std::make_shared<util::DepthImage>(
+      kDepthMapWidth, kDepthMapHeight,
+      std::make_unique<cv::Mat>(depth_mat.clone()));
   for (int i = 10; i < 30; ++i) {
     guidance_system->OnCameraPose(/*timestamp_us=*/i, look_forward,
                                   kCameraModel);
@@ -505,8 +510,9 @@ TEST(GuidanceSystemTest, ObstacleDetectionDepthMapWithAlignment) {
   cv::Mat depth_mat = CreateRandomDepthMat(kDepthMapWidth, kDepthMapHeight,
                                            kMinBackgroundDepthMeters,
                                            kMaxBackgroundDepthMeters, &seed);
-  util::DepthImage depth_map(kDepthMapWidth, kDepthMapHeight,
-                             std::make_unique<cv::Mat>(depth_mat.clone()));
+  auto depth_map = std::make_shared<util::DepthImage>(
+      kDepthMapWidth, kDepthMapHeight,
+      std::make_unique<cv::Mat>(depth_mat.clone()));
 
   std::optional<environment::ControlSignal> signal;
   const ControlSignalCallback callback =
@@ -525,7 +531,7 @@ TEST(GuidanceSystemTest, ObstacleDetectionDepthMapWithAlignment) {
   constexpr float kDepthScale = 0.789;
   constexpr float kDepthShift = 0.0123;
   std::vector<TrackingFeature> tracking_features =
-      TrackingFeaturesFromDepthMap(depth_map, kDepthScale, kDepthShift);
+      TrackingFeaturesFromDepthMap(*depth_map, kDepthScale, kDepthShift);
 
   for (int i = 0; i < 10; ++i) {
     guidance_system->OnCameraPose(/*timestamp_us=*/i, look_forward,
@@ -551,10 +557,11 @@ TEST(GuidanceSystemTest, ObstacleDetectionDepthMapWithAlignment) {
     }
   }
 
-  util::DepthImage depth_map2(kDepthMapWidth, kDepthMapHeight,
-                              std::make_unique<cv::Mat>(depth_mat.clone()));
+  auto depth_map2 = std::make_shared<util::DepthImage>(
+      kDepthMapWidth, kDepthMapHeight,
+      std::make_unique<cv::Mat>(depth_mat.clone()));
   tracking_features =
-      TrackingFeaturesFromDepthMap(depth_map2, kDepthScale, kDepthShift);
+      TrackingFeaturesFromDepthMap(*depth_map2, kDepthScale, kDepthShift);
 
   for (int i = 10; i < 30; ++i) {
     guidance_system->OnCameraPose(/*timestamp_us=*/i, look_forward,

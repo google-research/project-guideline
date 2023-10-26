@@ -44,20 +44,20 @@ std::string GetTestDataPath(const std::string& filename) {
 struct TestDetectionCallback {
   void OnDetection(const int64_t timestamp_us,
                    const std::vector<Eigen::Vector3f>& keypoints,
-                   const util::ConfidenceMask& guideline_mask,
-                   const util::DepthImage& depth_map) {
+                   std::shared_ptr<const util::ConfidenceMask> guideline_mask,
+                   std::shared_ptr<const util::DepthImage> depth_map) {
     callback_timestamp_us = timestamp_us;
     callback_keypoints = keypoints;
-    callback_guideline_mask.emplace(guideline_mask.Clone());
-    callback_depth_map.emplace(depth_map.Clone());
+    callback_guideline_mask = guideline_mask;
+    callback_depth_map = depth_map;
     notification.Notify();
   }
 
   absl::Notification notification;
   int64_t callback_timestamp_us;
   std::optional<std::vector<Eigen::Vector3f>> callback_keypoints;
-  std::optional<const util::ConfidenceMask> callback_guideline_mask;
-  std::optional<const util::DepthImage> callback_depth_map;
+  std::shared_ptr<const util::ConfidenceMask> callback_guideline_mask = nullptr;
+  std::shared_ptr<const util::DepthImage> callback_depth_map = nullptr;
 };
 
 TEST(GuidelineDetector, DepthMap) {
@@ -84,7 +84,7 @@ TEST(GuidelineDetector, DepthMap) {
   callback.notification.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   EXPECT_EQ(callback.callback_timestamp_us, kImageTimestampNs / 1000);
-  ASSERT_TRUE(callback.callback_depth_map.has_value());
+  ASSERT_TRUE(callback.callback_depth_map != nullptr);
 
   constexpr double kDepthImageScale = 1000.;
   constexpr double kDepthImageShift = 0.;
@@ -133,7 +133,7 @@ TEST(GuidelineDetector, SegmentationMask) {
 
   EXPECT_EQ(callback.callback_timestamp_us, kImageTimestampNs / 1000);
   ASSERT_TRUE(callback.callback_keypoints.has_value());
-  ASSERT_TRUE(callback.callback_guideline_mask.has_value());
+  ASSERT_TRUE(callback.callback_guideline_mask != nullptr);
 
   constexpr double kMaskImageScale = 65535.;
   constexpr double kMaskImageShift = 0.;

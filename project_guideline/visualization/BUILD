@@ -98,6 +98,24 @@ cc_library(
 )
 
 cc_library(
+    name = "ml_output_renderer",
+    srcs = ["ml_output_renderer.cc"],
+    hdrs = ["ml_output_renderer.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gl_util",
+        "//project_guideline/util:image",
+        "//third_party/GL:GLES3_headers",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@eigen_archive//:eigen3",
+        "@mediapipe//mediapipe/framework/port:opencv_core",
+    ],
+)
+
+cc_library(
     name = "render_context",
     srcs = ["render_context.cc"],
     hdrs = ["render_context.h"],

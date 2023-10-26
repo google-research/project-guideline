@@ -58,6 +58,7 @@ message GuidelineEngineConfig {
   optional OccupancyMapOptions occupancy_map_options = 6;
   optional PointCloudOptions point_cloud_options = 7;
   optional AudioSystemOptions audio_system_options = 8;
+  optional VisualizationOptions visualization_options = 9;
 }
 
 message KeypointExtractorOptions {
@@ -225,4 +226,9 @@ message GuidanceSystemOptions {
   // If true, a RANSAC solver is used to align ML depth map with tracked VIO
   // features.
   optional bool align_depth_with_features = 6 [default = true];
+}
+
+message VisualizationOptions {
+  // Enable ML debug overlay showing segmentation mask and depth image results.
+  optional bool enable_ml_overlay = 1;
 }

@@ -69,8 +69,8 @@ class GuidanceSystem {
                     std::shared_ptr<camera::CameraModel> camera_model);
   void OnDetection(int64_t timestamp_us,
                    const std::vector<Eigen::Vector3f>& keypoints,
-                   const util::ConfidenceMask& guideline_mask,
-                   const util::DepthImage& depth_map);
+                   std::shared_ptr<const util::ConfidenceMask> guideline_mask,
+                   std::shared_ptr<const util::DepthImage> depth_map);
   void OnTrackingStateChanged(bool is_tracking);
   void OnArDepth(int64_t timestamp_us, const util::DepthImageU16& depth_image,
                  const util::ConfidenceImageU8& confidence);

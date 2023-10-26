@@ -75,7 +75,8 @@ class GuidelineEngineWrapper {
   GuidelineEngineWrapper(
       jobject app_context,
       std::shared_ptr<arcore::ArcoreSession> arcore_session,
-      std::unique_ptr<engine::GuidelineEngine> guideline_engine);
+      std::unique_ptr<engine::GuidelineEngine> guideline_engine,
+      const GuidelineEngineConfig& config);
 
   absl::Status Initialize();
 

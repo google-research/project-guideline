@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Renders a camera image to the screen using OpenGL textures. This is capable
-// of using an external texture when running on an Android device (more
-// efficient), or converting an ARCore image to a texture when running on a
-// workstation.
-
-#ifndef PROJECT_GUIDELINE_VISUALIZATION_CAMERA_FEED_RENDERER_H_
-#define PROJECT_GUIDELINE_VISUALIZATION_CAMERA_FEED_RENDERER_H_
+#ifndef PROJECT_GUIDELINE_VISUALIZATION_ML_OUTPUT_RENDERER_H_
+#define PROJECT_GUIDELINE_VISUALIZATION_ML_OUTPUT_RENDERER_H_
 
 #include <cstdint>
 #include <memory>
@@ -28,6 +23,7 @@
 #include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>  // keep include
 // clang-format on
+#include <opencv2/core/mat.hpp>
 #include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "Eigen/Core"
@@ -35,40 +31,44 @@
 
 namespace guideline::visualization {
 
-class CameraFeedRenderer {
+// Renders an overlay of ML output (segmentation mask + depth map).
+class MlOutputRenderer {
  public:
-  CameraFeedRenderer(bool use_gl_texture, int texture_rotation_degrees = 0,
-                     float texture_aspect_ratio = 4.0 / 3.0);
+  MlOutputRenderer(int mask_rotation_degrees);
+  absl::Status OnGlInit();
+
+  void OnSegmentationMask(std::shared_ptr<const util::ConfidenceMask> mask);
+  void OnDepthMap(std::shared_ptr<const util::DepthImage> depth);
 
   void SetViewport(int width, int height);
   void Render();
 
-  absl::Status OnGlInit();
-  void OnGlTextureUpdated();
-  void OnGlTextureReset();
-  uint32_t gl_texture_id();
-
-  void OnImage(const std::shared_ptr<const util::Image>& image);
-
  private:
-  const bool use_gl_texture_;
-  const int texture_rotation_degrees_;
-  float texture_aspect_ratio_;
+  const int mask_rotation_degrees_;
 
   absl::Mutex mutex_;
-  std::shared_ptr<const util::Image> texture_update_image_
-      ABSL_GUARDED_BY(mutex_) = nullptr;
-  bool has_valid_texture_ ABSL_GUARDED_BY(mutex_) = false;
   Eigen::Matrix4f transform_matrix_ ABSL_GUARDED_BY(mutex_);
+  std::shared_ptr<const util::ConfidenceMask> segmentation_mask_
+      ABSL_GUARDED_BY(mutex_) = nullptr;
+  std::shared_ptr<const util::DepthImage> depth_map_ ABSL_GUARDED_BY(mutex_) =
+      nullptr;
 
-  GLuint texture_;
+  int viewport_width_ ABSL_GUARDED_BY(mutex_) = 0;
+  int viewport_height_ ABSL_GUARDED_BY(mutex_) = 0;
+
+  GLuint mask_texture_;
+  GLuint depth_texture_;
+  GLuint depth_colormap_texture_;
   GLuint program_;
   GLuint vertex_buffer_;
   GLuint texture_coords_buffer_;
   GLuint vertex_array_;
   GLint uniform_matrix_;
+  GLint uniform_mask_texture_;
+  GLint uniform_depth_texture_;
+  GLint uniform_depth_colormap_;
 };
 
 }  // namespace guideline::visualization
 
-#endif  // PROJECT_GUIDELINE_VISUALIZATION_CAMERA_FEED_RENDERER_H_
+#endif  // PROJECT_GUIDELINE_VISUALIZATION_ML_OUTPUT_RENDERER_H_
