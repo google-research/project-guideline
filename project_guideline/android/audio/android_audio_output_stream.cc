@@ -108,7 +108,7 @@ absl::Status AndroidAudioOutputStream::StartStream() {
   }
   if (static_cast<size_t>(AAudioStream_getPerformanceMode(aaudio_stream_)) !=
       AAUDIO_PERFORMANCE_MODE_LOW_LATENCY) {
-    return absl::InternalError("Failed to set low-latency mode");
+    LOG(WARNING) << "Failed to set aaudio low-latency mode";
   }
   if (AAudioStream_requestStart(aaudio_stream_) != AAUDIO_OK) {
     return absl::InternalError("Failed to start stream");
