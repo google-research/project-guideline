@@ -16,20 +16,26 @@
 #define PROJECT_GUIDELINE_AUDIO_SOUND_PACK_H_
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <utility>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "project_guideline/audio/sound_player.h"
-#include "project_guideline/util/embedded_file_toc.h"
 #include "project_guideline/environment/control_signal.h"
 #include "project_guideline/logging/guideline_logger.h"
+#include "project_guideline/util/embedded_file_toc.h"
 
 namespace guideline::audio {
 
 class SoundPack {
  public:
+  using Factory = std::function<absl::StatusOr<std::unique_ptr<SoundPack>>(
+      SoundPlayer::Factory sound_player_factory,
+      std::shared_ptr<logging::GuidelineLogger> logger)>;
+
   explicit SoundPack(std::unique_ptr<SoundPlayer> sound_player,
                      std::shared_ptr<logging::GuidelineLogger> logger)
       : sound_player_(std::move(sound_player)), logger_(std::move(logger)) {}
@@ -38,7 +44,7 @@ class SoundPack {
 
   virtual absl::Status Initialize() = 0;
 
-  virtual absl::Status Start() { return absl::OkStatus(); }
+  virtual absl::Status Start();
   virtual absl::Status Stop();
 
   virtual void OnControlSignal(const environment::ControlSignal& signal) = 0;

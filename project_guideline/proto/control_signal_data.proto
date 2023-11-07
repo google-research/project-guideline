@@ -12,23 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "project_guideline/audio/sound_pack.h"
+syntax = "proto2";
 
-#include <cstddef>
+package guideline;
 
-#include "absl/status/status.h"
+// option cc_api_version = 2;
+option java_multiple_files = true;
 
-namespace guideline::audio {
-
-absl::Status SoundPack::Start() { return absl::OkStatus(); }
-
-absl::Status SoundPack::Stop() {
-  sound_player_->StopAll();
-  return absl::OkStatus();
+// Allows custom control signal data through proto extensions.
+message ControlSignalData {
+  extensions 1000 to max;
 }
-
-void SoundPack::OnMoreData(size_t num_frames) {
-  sound_player_->OnMoreData(num_frames);
-}
-
-}  // namespace guideline::audio

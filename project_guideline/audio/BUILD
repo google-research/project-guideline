@@ -235,12 +235,16 @@ cc_library(
     name = "sound_pack",
     srcs = ["sound_pack.cc"],
     hdrs = ["sound_pack.h"],
+    visibility = [
+        "//visibility:public",
+    ],
     deps = [
         ":sound_player",
         "//project_guideline/environment:control_signal",
         "//project_guideline/logging:guideline_logger",
         "//project_guideline/util:embedded_file_toc",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
@@ -248,6 +252,9 @@ cc_library(
     name = "sound_player",
     srcs = ["sound_player.cc"],
     hdrs = ["sound_player.h"],
+    visibility = [
+        "//visibility:public",
+    ],
     deps = [
         ":audio_stream_renderer",
         "//project_guideline/util:embedded_file_toc",

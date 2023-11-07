@@ -20,9 +20,12 @@
 #include <optional>
 #include <utility>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "project_guideline/audio/sound_pack.h"
+#include "project_guideline/audio/sound_player.h"
 #include "project_guideline/environment/control_signal.h"
+#include "project_guideline/logging/guideline_logger.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "project_guideline/util/embedded_file_toc.h"
 
@@ -55,7 +58,8 @@ class LegacySoundPack : public SoundPack {
 
   const LegacySoundPackOptions options_;
 
-  std::optional<const util::EmbeddedFileToc*> stop_sound_override_ = std::nullopt;
+  std::optional<const util::EmbeddedFileToc*> stop_sound_override_ =
+      std::nullopt;
 
   PanningStrategy steering_panner_ = nullptr;
   PanningStrategy warning_panner_ = nullptr;

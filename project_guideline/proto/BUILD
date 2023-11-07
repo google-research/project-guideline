@@ -12,11 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//tools/build_defs/proto/cpp:cc_proto_library.bzl", "cc_proto_library")
+
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//:internal",
     ],
+)
+
+proto_library(
+    name = "control_signal_data_proto",
+    srcs = ["control_signal_data.proto"],
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+cc_proto_library(
+    name = "control_signal_data_cc_proto",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [":control_signal_data_proto"],
 )
 
 proto_library(

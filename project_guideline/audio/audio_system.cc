@@ -23,6 +23,7 @@
 #include "absl/functional/bind_front.h"
 #include "absl/memory/memory.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
@@ -31,10 +32,14 @@
 #include "project_guideline/audio/assets/low_battery_embed.h"
 #include "project_guideline/audio/assets/ready_embed.h"
 #include "project_guideline/audio/assets/stopstopstop_embed.h"
+#include "project_guideline/audio/audio_output_stream.h"
 #include "project_guideline/audio/demo_resonant_sound_pack.h"
 #include "project_guideline/audio/legacy_sound_pack.h"
+#include "project_guideline/audio/sound_pack.h"
+#include "project_guideline/audio/sound_player.h"
 #include "project_guideline/audio/vorbis_stream_encoder.h"
 #include "project_guideline/logging/guideline_logger.h"
+#include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "project_guideline/util/status.h"
 #include "resonance_audio_api.h"
 
@@ -43,7 +48,8 @@ namespace guideline::audio {
 absl::StatusOr<std::unique_ptr<AudioSystem>> AudioSystem::Create(
     const AudioSystemOptions& options,
     std::shared_ptr<logging::GuidelineLogger> logger,
-    std::shared_ptr<audio::AudioOutputStream> audio_output_stream) {
+    std::shared_ptr<audio::AudioOutputStream> audio_output_stream,
+    SoundPack::Factory sound_pack_factory) {
   std::shared_ptr<vraudio::ResonanceAudioApi> resonance_audio =
       absl::WrapUnique(vraudio::CreateResonanceAudioApi(
           audio_output_stream->GetNumChannels(),
@@ -58,7 +64,10 @@ absl::StatusOr<std::unique_ptr<AudioSystem>> AudioSystem::Create(
   };
 
   std::unique_ptr<SoundPack> sound_pack;
-  if (options.has_legacy_sound_pack_options()) {
+  if (sound_pack_factory != nullptr) {
+    GL_ASSIGN_OR_RETURN(sound_pack,
+                        sound_pack_factory(sound_player_factory, logger));
+  } else if (options.has_legacy_sound_pack_options()) {
     GL_ASSIGN_OR_RETURN(sound_pack, LegacySoundPack::Create(
                                         sound_player_factory, logger,
                                         options.legacy_sound_pack_options()));
@@ -68,17 +77,19 @@ absl::StatusOr<std::unique_ptr<AudioSystem>> AudioSystem::Create(
   }
 
   auto audio_system = absl::WrapUnique(
-      new AudioSystem(std::move(resonance_audio), std::move(sound_pack),
-                      std::move(audio_output_stream)));
+      new AudioSystem(options, std::move(resonance_audio),
+                      std::move(sound_pack), std::move(audio_output_stream)));
   GL_RETURN_IF_ERROR(audio_system->Initialize());
   return audio_system;
 }
 
 AudioSystem::AudioSystem(
+    const AudioSystemOptions& options,
     std::shared_ptr<vraudio::ResonanceAudioApi> resonance_audio,
     std::unique_ptr<SoundPack> sound_pack,
     std::shared_ptr<audio::AudioOutputStream> audio_output_stream)
-    : resonance_audio_(resonance_audio),
+    : options_(options),
+      resonance_audio_(resonance_audio),
       sound_pack_(std::move(sound_pack)),
       audio_output_stream_(audio_output_stream),
       base_sound_player_(std::make_unique<SoundPlayer>(
@@ -206,16 +217,25 @@ void AudioSystem::OnControlSignal(const environment::ControlSignal& signal) {
   if (signal.stop) {
     if (state_ != ControlSoundState::STOPPING &&
         state_ != ControlSoundState::INITIALIZING) {
-      state_ = ControlSoundState::STOPPING;
-      StopSoundPlayer();
-      base_sound_player_->PlayExclusiveSoundOnce(
-          stop_sound_,
-          absl::bind_front(&AudioSystem::OnExclusiveSoundFinished, this));
+      if (options_.stop_alert()) {
+        state_ = ControlSoundState::STOPPING;
+        StopSoundPlayer();
+        base_sound_player_->PlayExclusiveSoundOnce(
+            stop_sound_,
+            absl::bind_front(&AudioSystem::OnExclusiveSoundFinished, this));
+      } else {
+        BeginInitializationState();
+      }
     }
     return;
   }
 
   if (state_ == ControlSoundState::INITIALIZING) {
+    if (options_.quick_initialization()) {
+      BeginGuidingState();
+      return;
+    }
+
     // Let the initializing sound play through at least once.
     if (base_sound_player_->GetCurrentLoopCount(initializing_sound_) < 1) {
       return;
@@ -261,12 +281,16 @@ void AudioSystem::BeginInitializationState() {
 void AudioSystem::OnExclusiveSoundFinished(SoundId sound_id) {
   mutex_.AssertHeld();
   if (sound_id == ready_sound_ && state_ == ControlSoundState::READY) {
-    StopSoundPlayer();
-    state_ = ControlSoundState::GUIDING;
-    CHECK_OK(sound_pack_->Start());
+    BeginGuidingState();
   } else if (sound_id == stop_sound_ && state_ == ControlSoundState::STOPPING) {
     BeginInitializationState();
   }
+}
+
+void AudioSystem::BeginGuidingState() {
+  StopSoundPlayer();
+  state_ = ControlSoundState::GUIDING;
+  CHECK_OK(sound_pack_->Start());
 }
 
 void AudioSystem::StopSoundPlayer() {

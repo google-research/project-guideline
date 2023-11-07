@@ -223,6 +223,7 @@ cc_library(
 cc_library(
     name = "status",
     hdrs = ["status.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/log:check",

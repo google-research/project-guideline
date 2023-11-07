@@ -77,6 +77,14 @@ message AudioSystemOptions {
   oneof sound_pack {
     LegacySoundPackOptions legacy_sound_pack_options = 1;
   }
+
+  // If true, the initialization sound will immediately stop once a signal is
+  // available.
+  optional bool quick_initialization = 2 [default = false];
+
+  // If true, plays an alert when guidance signal is lost. Otherwise goes back
+  // to initialization sound state.
+  optional bool stop_alert = 3 [default = true];
 }
 
 message LegacySoundPackOptions {

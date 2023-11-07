@@ -49,6 +49,11 @@ TEST(LerpTest, TestClampedLerp) {
   // Reversed out of range
   ASSERT_EQ(200, ClampedLerp(-0.5, 0., 1., 200., 100.));
   ASSERT_EQ(100, ClampedLerp(1.5, 0., 1., 200., 100.));
+
+  // Reversed range
+  ASSERT_EQ(175, ClampedLerp(-0.75, 0., -1., 100., 200.));
+  ASSERT_EQ(200, ClampedLerp(-2., 0., -1., 100., 200.));
+  ASSERT_EQ(100, ClampedLerp(5., 0., -1., 100., 200.));
 }
 
 TEST(LerpTest, LerpInterpolator) {

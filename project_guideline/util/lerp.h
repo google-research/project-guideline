@@ -16,7 +16,7 @@
 #define PROJECT_GUIDELINE_UTIL_LERP_H_
 
 #include <algorithm>
-#include <functional>
+#include <type_traits>
 
 namespace guideline::util {
 
@@ -41,13 +41,17 @@ inline T Lerp(T x, T a, T b, T u, T v, T (*interpolator)(T)) {
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
                                               int>::type = 0>
 inline T ClampedLerp(T x, T a, T b, T u, T v) {
-  return Lerp(std::min(b, std::max(a, x)), a, b, u, v);
+  float high = std::max<T>(a, b);
+  float low = std::min<T>(a, b);
+  return Lerp(std::min<T>(high, std::max<T>(low, x)), a, b, u, v);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
                                               int>::type = 0>
 inline T ClampedLerp(T x, T a, T b, T u, T v, T (*interpolator)(T)) {
-  return Lerp(std::min(b, std::max(a, x)), a, b, u, v, interpolator);
+  float high = std::max<T>(a, b);
+  float low = std::min<T>(a, b);
+  return Lerp(std::min<T>(high, std::max<T>(low, x)), a, b, u, v, interpolator);
 }
 
 }  // namespace guideline::util

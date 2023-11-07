@@ -27,6 +27,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "project_guideline/audio/audio_output_stream.h"
@@ -34,6 +36,7 @@
 #include "project_guideline/audio/sound_player.h"
 #include "project_guideline/audio/vorbis_stream_encoder.h"
 #include "project_guideline/environment/control_signal.h"
+#include "project_guideline/logging/guideline_logger.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "resonance_audio_api.h"
 
@@ -44,7 +47,8 @@ class AudioSystem {
   static absl::StatusOr<std::unique_ptr<AudioSystem>> Create(
       const AudioSystemOptions& options,
       std::shared_ptr<logging::GuidelineLogger> logger,
-      std::shared_ptr<audio::AudioOutputStream> audio_output_stream);
+      std::shared_ptr<audio::AudioOutputStream> audio_output_stream,
+      SoundPack::Factory sound_pack_factory = nullptr);
 
   ~AudioSystem();
 
@@ -70,6 +74,7 @@ class AudioSystem {
 
  private:
   explicit AudioSystem(
+      const AudioSystemOptions& options,
       std::shared_ptr<vraudio::ResonanceAudioApi> resonance_audio,
       std::unique_ptr<SoundPack> sound_pack,
       std::shared_ptr<audio::AudioOutputStream> audio_output_stream);
@@ -95,6 +100,8 @@ class AudioSystem {
 
   void BeginInitializationState() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
+  void BeginGuidingState() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
+
   void OnExclusiveSoundFinished(SoundId sound_id)
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
@@ -103,6 +110,7 @@ class AudioSystem {
   const int kLowBatteryWarningThreshold = 25;
   const absl::Duration kLowBatteryWarningInterval = absl::Seconds(30);
 
+  const AudioSystemOptions options_;
   std::shared_ptr<vraudio::ResonanceAudioApi> resonance_audio_;
   std::unique_ptr<SoundPack> sound_pack_;
   std::shared_ptr<audio::AudioOutputStream> audio_output_stream_;

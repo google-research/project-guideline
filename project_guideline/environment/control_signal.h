@@ -18,6 +18,7 @@
 #include <optional>
 
 #include "Eigen/Core"
+#include "project_guideline/proto/control_signal_data.pb.h"
 
 namespace guideline::environment {
 
@@ -79,6 +80,8 @@ struct ControlSignal {
   // Points on the lateral movement line that represent the edges of the track.
   std::optional<Eigen::Vector3d> left_edge_point = std::nullopt;
   std::optional<Eigen::Vector3d> right_edge_point = std::nullopt;
+
+  ControlSignalData extra_data;
 };
 
 }  // namespace guideline::environment
