@@ -137,6 +137,7 @@ maven_install(
         "org.robolectric:shadows-framework:4.9.2",
         "com.google.ar:core:1.36.0",
         "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.code.gson:gson:2.8.9",
         "com.google.guava:guava:31.1-android",
         "com.google.truth:truth:1.1.3",
         "javax.annotation:javax.annotation-api:1.3.2",

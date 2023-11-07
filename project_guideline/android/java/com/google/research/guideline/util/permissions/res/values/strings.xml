@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
  Copyright 2023 Google LLC
 
@@ -14,7 +15,7 @@
  limitations under the License.
 
 -->
-<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
   <!-- Title for a dialog to notify the user that device permissions are required. [CHAR LIMIT=100] -->
   <string name="permissions_required_dialog_title">Permissions required</string>

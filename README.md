@@ -20,7 +20,8 @@ This is not an officially supported Google product.
 2. [Waist harness for phone][harness-docs]
   - Camera should be held around waist height, approximately 1 meter above
     ground
-  - Rear camera must be facing forward without obstruction
+  - Rear camera must be facing forward without obstruction, with a level angle
+    pointed roughly toward horizon.
 3. Bluetooth headphones
   - Recommended: [Shokz OpenRun][shokz-openrun] or similar which do not block
    ambient sounds
@@ -67,17 +68,39 @@ person remaining close to the runner.
    "STOP" audio cue is played and the system returns to the initialization
    sequence.
 
-**NOTE:** This open-source version of Project Guideline uses the public ARCore
-SDK which does not include some optimizations we've used internally to improve
-the running use-case. You may find that the system resets while the user is
-running or when large camera movements are present. We are currently working on
-releasing the optimizations in the public ARCore SDK, and will provide an update
-when available. Until that time, the best results will be obtained with walking
-or low-impact jogging.
 
-## Building the Android App
+## Build Prerequisites
 
-1. Install [bazelisk][bazelisk-installation]
+### Building using Docker image
+The included *build.Dockerfile* can be used to create a docker image configured
+for building the app.
+
+```shell
+$ docker build https://github.com/google-research/project-guideline.git \
+     -t project-guideline/build:latest \
+     -f build.Dockerfile
+```
+
+### Manual build configuration
+
+1. Install Ubuntu 22.04 (amd64).
+
+2. Install required dependencies:
+
+   ```shell
+    $ apt update && apt install -y \
+        curl \
+        wget \
+        build-essential \
+        openjdk-11-jdk-headless \
+        git \
+        zip \
+        unzip \
+        python3 \
+        python3-numpy
+   ```
+
+3. Install [bazelisk][bazelisk-installation]
 
    ```shell
    $ wget https://github.com/bazelbuild/bazelisk/releases/download/v1.17.0/bazelisk-linux-amd64
@@ -85,23 +108,44 @@ or low-impact jogging.
    $ sudo chmod ugo+x /usr/local/bin/bazelisk
    ```
 
-2. Install required dependencies:
+[bazelisk-installation]: https://github.com/bazelbuild/bazelisk#installation
+
+## Building the Android App
+These build instructions have been tested on Ubuntu 22.04 (amd64).
+
+1. Start the container (If using Docker)
+
+   It is recommended to mount a local directory to the Docker container to
+   persist the code.
 
    ```shell
-    $ apt install -y \
-        curl \
-        wget \
-        build-essential \
-        openjdk-11-jdk-headless \
-        zip \
-        unzip \
-        python3 \
-        python3-numpy
+   $ LOCAL_DIR=/path/to/development
+   $ PROJECT_ROOT=/development
+   $ docker run -i -t project-guideline/build:latest -v $LOCAL_DIR:$PROJECT_ROOT/project-guideline
+   ```
+
+2. Clone the repo
+
+   ```shell
+   $ cd $PROJECT_ROOT
+   $ git clone https://github.com/google-research/project-guideline.git
+   ```
+
+3. Setup the Android SDK and NDK
+
+   This step is required once before building. If the download/setup fails you
+   may need to delete the ~/Android/Sdk and ~/Android/Ndk directories and try
+   again.
+
+   ```shell
+   $ cd $PROJECT_ROOT/project-guideline
+   $ bash ./setup_android_sdk_and_ndk.sh ~/Android/Sdk ~/Android/Ndk r21e --accept-licenses
    ```
 
 3. Build with bazel:
 
    ```shell
+    $ cd $PROJECT_ROOT/project-guideline
     $ bazelisk build --config=android_arm64 \
           --compilation_mode=opt \
           --spawn_strategy=local \
@@ -112,13 +156,20 @@ or low-impact jogging.
    maximum performance. For additional debugging information this can be
    replaced with --compilation_mode=fastbuild or --compilation_mode=dbg.
 
+   If using Docker, it is recommended to update the docker image after running
+   this step so the dependency cache is saved and will drastically speed up
+   future builds. Alternatively, the *--output_user_root* flag can be passed
+   to bazelisk to specify a persistent cache location.
+
+   Occasionally a dependency repository will fail to download the first time
+   (e.g. *FileNotFoundException*). This can be transient and it is suggested to
+   try the build command again.
+
 4. Install to device:
 
    ```shell
     $ abd install -r bazel-bin/project_guideline/android/guideline_app.apk
    ```
-
-[bazelisk-installation]: https://github.com/bazelbuild/bazelisk#installation
 
 ## Running tests
 

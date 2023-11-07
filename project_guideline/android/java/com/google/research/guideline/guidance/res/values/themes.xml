@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
  Copyright 2023 Google LLC
 
@@ -14,7 +15,7 @@
  limitations under the License.
 
 -->
-<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
   <style name="Theme.Guidance" parent="@style/Theme.AppCompat.NoActionBar">
     <item name="android:windowFullscreen">true</item>

@@ -29,10 +29,10 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
-        "//google/protobuf:duration_java_proto_lite",
-        "//java/com/google/protobuf/util:time_lite",
         "//project_guideline/proto:guideline_engine_config_java_proto_lite",
         "//third_party/hilt:android_entry_point",
+        "//third_party/protobuf:duration_java_proto_lite",
+        "//third_party/protobuf:time_lite",
         "@maven//:androidx_annotation_annotation",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_fragment_fragment",
