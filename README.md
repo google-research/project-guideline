@@ -76,10 +76,12 @@ The included *build.Dockerfile* can be used to create a docker image configured
 for building the app.
 
 ```shell
-$ docker build https://github.com/google-research/project-guideline.git \
+$ docker build \
      -t project-guideline/build:latest \
-     -f build.Dockerfile
+     -f build.Dockerfile \
+     https://github.com/google-research/project-guideline.git
 ```
+
 
 ### Manual build configuration
 

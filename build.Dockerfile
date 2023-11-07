@@ -19,6 +19,7 @@ RUN apt update && apt install -y \
         wget \
         build-essential \
         openjdk-11-jdk-headless \
+        git \
         zip \
         unzip \
         python3 \
