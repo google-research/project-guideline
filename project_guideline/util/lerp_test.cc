@@ -19,7 +19,7 @@
 namespace guideline::util {
 namespace {
 
-TEST(LerpTest, TestLerp) {
+TEST(LerpTest, Lerp) {
   // In range
   ASSERT_EQ(100, Lerp(0., 0., 1., 100., 200.));
   ASSERT_EQ(150, Lerp(0.5, 0., 1., 100., 200.));
@@ -36,7 +36,7 @@ TEST(LerpTest, TestLerp) {
   ASSERT_EQ(125, Lerp(0.75, 0., 1., 200., 100.));
 }
 
-TEST(LerpTest, TestClampedLerp) {
+TEST(LerpTest, ClampedLerp) {
   // In range
   ASSERT_EQ(100, ClampedLerp(0., 0., 1., 100., 200.));
   ASSERT_EQ(150, ClampedLerp(0.5, 0., 1., 100., 200.));
@@ -56,43 +56,42 @@ TEST(LerpTest, TestClampedLerp) {
   ASSERT_EQ(100, ClampedLerp(5., 0., -1., 100., 200.));
 }
 
-TEST(LerpTest, LerpInterpolator) {
+TEST(LerpTest, LerpWithGamma) {
   // In range
-  ASSERT_EQ(100, Lerp(0., 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(106.25, Lerp(0.25, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(125, Lerp(0.5, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(156.25, Lerp(0.75, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(200, Lerp(1., 0., 1., 100., 200., &SquareLerpInterpolator));
+  ASSERT_EQ(100, Lerp(0., 0., 1., 100., 200., 2.));
+  ASSERT_EQ(106.25, Lerp(0.25, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(125, Lerp(0.5, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(156.25, Lerp(0.75, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(200, Lerp(1., 0., 1., 100., 200., 2.));
+
+  ASSERT_EQ(100, Lerp(0., 0., 1., 100., 200., 0.5));
+  ASSERT_EQ(150, Lerp(0.25, 0., 1., 100., 200., 0.5));
+  ASSERT_EQ(200, Lerp(1., 0., 1., 100., 200., 0.5));
 
   // Out of range
-  ASSERT_EQ(125, Lerp(-0.5, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(325, Lerp(1.5, 0., 1., 100., 200., &SquareLerpInterpolator));
+  ASSERT_EQ(125, Lerp(-0.5, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(325, Lerp(1.5, 0., 1., 100., 200., 2.));
 
   // Reversed range
-  ASSERT_EQ(193.75, Lerp(0.25, 0., 1., 200., 100., &SquareLerpInterpolator));
-  ASSERT_EQ(143.75, Lerp(0.75, 0., 1., 200., 100., &SquareLerpInterpolator));
+  ASSERT_EQ(193.75, Lerp(0.25, 0., 1., 200., 100., 2.));
+  ASSERT_EQ(143.75, Lerp(0.75, 0., 1., 200., 100., 2.));
 }
 
-TEST(LerpTest, ClampedLerpInterpolator) {
+TEST(LerpTest, ClampedLerpWithGamma) {
   // In range
-  ASSERT_EQ(100, ClampedLerp(0., 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(106.25,
-            ClampedLerp(0.25, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(125, ClampedLerp(0.5, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(156.25,
-            ClampedLerp(0.75, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(200, ClampedLerp(1., 0., 1., 100., 200., &SquareLerpInterpolator));
+  ASSERT_EQ(100, ClampedLerp(0., 0., 1., 100., 200., 2.));
+  ASSERT_EQ(106.25, ClampedLerp(0.25, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(125, ClampedLerp(0.5, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(156.25, ClampedLerp(0.75, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(200, ClampedLerp(1., 0., 1., 100., 200., 2.));
 
   // Out of range
-  ASSERT_EQ(100,
-            ClampedLerp(-0.5, 0., 1., 100., 200., &SquareLerpInterpolator));
-  ASSERT_EQ(200, ClampedLerp(1.5, 0., 1., 100., 200., &SquareLerpInterpolator));
+  ASSERT_EQ(100, ClampedLerp(-0.5, 0., 1., 100., 200., 2.));
+  ASSERT_EQ(200, ClampedLerp(1.5, 0., 1., 100., 200., 2.));
 
   // Reversed range
-  ASSERT_EQ(193.75,
-            ClampedLerp(0.25, 0., 1., 200., 100., &SquareLerpInterpolator));
-  ASSERT_EQ(143.75,
-            ClampedLerp(0.75, 0., 1., 200., 100., &SquareLerpInterpolator));
+  ASSERT_EQ(193.75, ClampedLerp(0.25, 0., 1., 200., 100., 2.));
+  ASSERT_EQ(143.75, ClampedLerp(0.75, 0., 1., 200., 100., 2.));
 }
 
 }  // namespace
