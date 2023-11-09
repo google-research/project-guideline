@@ -101,11 +101,11 @@ absl::Status LegacySoundPack::Initialize() {
       warning_panner_ = LinearThresholdPan(0.8f);
       steering_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       warning_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0.8, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       break;
     case LegacySoundPackOptions::V4_0:
@@ -116,7 +116,7 @@ absl::Status LegacySoundPack::Initialize() {
       steering_rate_strategy_ = [](float input) { return 1; };
       warning_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0.4, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       break;
     case LegacySoundPackOptions::V4_1:
@@ -127,11 +127,11 @@ absl::Status LegacySoundPack::Initialize() {
       warning_panner_ = LinearThresholdPan(0.4f);
       steering_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       warning_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0.4, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       break;
     case LegacySoundPackOptions::V4_2:
@@ -143,7 +143,7 @@ absl::Status LegacySoundPack::Initialize() {
       steering_rate_strategy_ = [](float input) { return 1; };
       warning_rate_strategy_ = [](float input) {
         return util::ClampedLerp<float>(std::abs(input), 0.4, 1, 1, 2,
-                                        &util::SquareLerpInterpolator);
+                                        /*gamma=*/2);
       };
       break;
   }

@@ -16,15 +16,10 @@
 #define PROJECT_GUIDELINE_UTIL_LERP_H_
 
 #include <algorithm>
+#include <cmath>
 #include <type_traits>
 
 namespace guideline::util {
-
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
-                                              int>::type = 0>
-inline T SquareLerpInterpolator(T input) {
-  return input * input;
-}
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
                                               int>::type = 0>
@@ -34,8 +29,8 @@ static inline T Lerp(T x, T a, T b, T u, T v) {
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
                                               int>::type = 0>
-inline T Lerp(T x, T a, T b, T u, T v, T (*interpolator)(T)) {
-  return u + interpolator((x - a) / (b - a)) * (v - u);
+inline T Lerp(T x, T a, T b, T u, T v, T gamma) {
+  return u + std::pow((x - a) / (b - a), gamma) * (v - u);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
@@ -48,10 +43,10 @@ inline T ClampedLerp(T x, T a, T b, T u, T v) {
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value,
                                               int>::type = 0>
-inline T ClampedLerp(T x, T a, T b, T u, T v, T (*interpolator)(T)) {
+inline T ClampedLerp(T x, T a, T b, T u, T v, T gamma) {
   float high = std::max<T>(a, b);
   float low = std::min<T>(a, b);
-  return Lerp(std::min<T>(high, std::max<T>(low, x)), a, b, u, v, interpolator);
+  return Lerp(std::min<T>(high, std::max<T>(low, x)), a, b, u, v, gamma);
 }
 
 }  // namespace guideline::util
