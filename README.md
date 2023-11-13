@@ -15,8 +15,9 @@ This is not an officially supported Google product.
 
 ## Requirements
 
-1. Pixel 6 or Pixel 7 Android phone (Android 11+). These devices have a TPU
-   (Tensor Processing Unit) which significantly improves ML model performance.
+1. Pixel 6, Pixel 7, or Pixel 8 Android phone (Android 11+). These devices have
+   a TPU (Tensor Processing Unit) which significantly improves ML model
+   performance.
 2. [Waist harness for phone][harness-docs]
   - Camera should be held around waist height, approximately 1 meter above
     ground

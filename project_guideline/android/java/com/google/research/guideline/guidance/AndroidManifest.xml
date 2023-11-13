@@ -36,6 +36,7 @@
         android:screenOrientation="reverseLandscape"
         android:configChanges="keyboardHidden"
         android:launchMode="singleTop"
+        android:keepScreenOn="true"
         android:theme="@style/Theme.Guidance">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
