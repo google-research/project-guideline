@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_library")
 load("//project_guideline/bazel:build_defs.bzl", "android_only")
+load("@build_bazel_rules_android//android:rules.bzl", "android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -32,7 +32,6 @@ android_library(
         "//project_guideline/proto:guideline_engine_config_java_proto_lite",
         "//third_party/hilt:android_entry_point",
         "//third_party/protobuf:duration_java_proto_lite",
-        "//third_party/protobuf:time_lite",
         "@maven//:androidx_annotation_annotation",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_fragment_fragment",

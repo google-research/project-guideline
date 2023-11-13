@@ -34,7 +34,6 @@ import com.google.ar.core.exceptions.FatalException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 import com.google.protobuf.Duration;
-import com.google.protobuf.util.Durations;
 import com.google.research.guideline.proto.AudioSystemOptions;
 import com.google.research.guideline.proto.ClearanceZoneOptions;
 import com.google.research.guideline.proto.FrameBasedOccupancyMapOptions;
@@ -62,7 +61,7 @@ public final class NativeEngineFragment extends Hilt_NativeEngineFragment {
   private static final boolean ENABLE_OBSTACLE_ONLY_MODE = false;
 
   // Stop signal given after this time if no line detected in camera frame.
-  private static final Duration EAGER_STOP_THRESHOLD = Durations.fromMillis(750);
+  private static final Duration EAGER_STOP_THRESHOLD = durationFromMillis(750);
 
   // Estimated height of camera above ground (approx. waist height).
   private static final float CAMERA_HEIGHT_METERS = 1.0f;
@@ -89,6 +88,12 @@ public final class NativeEngineFragment extends Hilt_NativeEngineFragment {
   private WakeLock partialWakeLock;
 
   private boolean arcoreInstallRequested = false;
+
+  private static Duration durationFromMillis(long milliseconds) {
+    long seconds = milliseconds / 1000;
+    int nanos = (int) ((milliseconds % 1000) * 1000000);
+    return Duration.newBuilder().setSeconds(seconds).setNanos(nanos).build();
+  }
 
   @Override
   public View onCreateView(

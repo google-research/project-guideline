@@ -52,7 +52,7 @@ config_setting(
 )
 
 platform(
-    name = "android_arm64",
+    name = "arm64-v8a",
     constraint_values = [
         "@platforms//os:android",
         "@platforms//cpu:arm64",

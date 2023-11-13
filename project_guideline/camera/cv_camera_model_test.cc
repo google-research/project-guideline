@@ -14,6 +14,9 @@
 
 #include "project_guideline/camera/cv_camera_model.h"
 
+#include <limits>
+#include <vector>
+
 #include "gtest/gtest.h"
 #include "Eigen/Core"  // keep include
 #include "project_guideline/testing/predicates.h"

@@ -47,9 +47,3 @@ alias(
     actual = "@com_google_protobuf//java/lite",
     visibility = ["//visibility:public"],
 )
-
-alias(
-    name = "time_lite",
-    actual = "@com_google_protobuf//java/util",
-    visibility = ["//visibility:public"],
-)

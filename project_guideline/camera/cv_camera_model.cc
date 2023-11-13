@@ -16,7 +16,10 @@
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc.hpp>
+#include <opencv2/core/hal/interface.h>
+#include <opencv2/core/mat.hpp>
+#include "Eigen/Core"
+#include "project_guideline/camera/camera_model.h"
 
 namespace guideline::camera {
 
@@ -36,8 +39,7 @@ bool CvCameraModel::PointToPixel(const Eigen::Vector3d& camera_t_point,
     // Point is behind the camera.
     return false;
   }
-  cv::Mat camera_t_point_mat;
-  cv::eigen2cv(camera_t_point, camera_t_point_mat);
+  cv::Mat camera_t_point_mat(1, 1, CV_64FC3, (void*)camera_t_point.data());
   cv::Mat image_points;
   // Project the point in camera coordinate frame to image pixel.
   cv::projectPoints(camera_t_point_mat, /*rvec=*/kZeroVec3Mat,
@@ -49,8 +51,7 @@ bool CvCameraModel::PointToPixel(const Eigen::Vector3d& camera_t_point,
 
 bool CvCameraModel::PixelToRay(const Eigen::Vector2d& pixel,
                                Eigen::Vector3d& ray) const {
-  cv::Mat pixel_mat;
-  cv::eigen2cv(pixel, pixel_mat);
+  cv::Mat pixel_mat(1, 1, CV_64FC2, (void*)pixel.data());
   cv::Mat point;
   // This projects the pixel into camera coordinate frame for z = 1.
   cv::undistortPoints(pixel_mat, point, intrinsic_matrix_mat_,

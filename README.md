@@ -173,6 +173,10 @@ These build instructions have been tested on Ubuntu 22.04 (amd64).
     $ abd install -r bazel-bin/project_guideline/android/guideline_app.apk
    ```
 
+   If using docker, the bazel-bin location is symlinked so it is recommended to
+   either copy the apk to a mounted volume accessible on the host first, or use
+   the *--output_user_root* bazel flag to specify a host directory.
+
 ## Running tests
 
 ```shell

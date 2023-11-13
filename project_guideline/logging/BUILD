@@ -57,7 +57,7 @@ cc_library(
         "//project_guideline/util:image_io",
         "//third_party/protobuf",
         "//third_party/protobuf:io",
-        "//third_party/protobuf:time_util",
+        "//third_party/protobuf/util:time_util",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
