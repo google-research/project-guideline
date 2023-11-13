@@ -18,6 +18,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/imgproc.hpp>  // keep include
 #include "Eigen/Core"
 #include "project_guideline/camera/camera_model.h"
 
