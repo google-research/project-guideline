@@ -151,6 +151,8 @@ cc_library(
         "//project_guideline/audio/assets:legacy_v4_2_warning_embed",
         "//project_guideline/audio/assets:legacy_warning_embed",
         "//project_guideline/audio/assets:obstacle_embed",
+        "//project_guideline/audio/assets:turn_embed",
+        "//project_guideline/audio/assets:turn_fast_embed",
         "//project_guideline/audio/assets:warning_pitch_shift_2x_embed",
         "//project_guideline/environment:control_signal",
         "//project_guideline/logging:guideline_logger",
