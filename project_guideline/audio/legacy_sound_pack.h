@@ -63,11 +63,14 @@ class LegacySoundPack : public SoundPack {
 
   PanningStrategy steering_panner_ = nullptr;
   PanningStrategy warning_panner_ = nullptr;
+  PanningStrategy curve_panner_ = nullptr;
   RateStrategy steering_rate_strategy_ = nullptr;
   RateStrategy warning_rate_strategy_ = nullptr;
+  RateStrategy curve_rate_strategy_ = nullptr;
 
   SoundId steering_sound_;
   SoundId warning_sound_;
+  SoundId curve_sound_;
   SoundId obstacle_sound_;
 };
 
