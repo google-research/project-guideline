@@ -38,6 +38,10 @@ struct ControlSignal {
   // upcoming line.
   float rotation_movement_degrees = 0.;
 
+  // Desired user rotational movement based on user position, direction of
+  // upcoming line and ahead distance omitted.
+  float rotation_movement_ahead_degrees = 0.;
+
   // World coordinates of an upcoming turn point, if any.
   std::optional<Eigen::Vector3d> turn_point = std::nullopt;
 
