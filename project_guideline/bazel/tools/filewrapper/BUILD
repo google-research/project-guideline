@@ -14,12 +14,7 @@
 
 load("//project_guideline/bazel:gl_cc_embed_data.bzl", "gl_cc_embed_data")
 
-package(
-    default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//:internal",
-    ],
-)
+package(default_applicable_licenses = ["//:license"])
 
 cc_binary(
     name = "filewrapper",
