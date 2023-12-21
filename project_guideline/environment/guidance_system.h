@@ -103,7 +103,7 @@ class GuidanceSystem {
                        const util::DepthImage& depth_map,
                        const PendingFeatures& features);
 
-  void ResetAndSendStopSignal();
+  void ResetAndSendStopSignal(int reason);
 
   std::shared_ptr<camera::CameraModel> GetCameraModel()
       ABSL_LOCKS_EXCLUDED(camera_model_mutex_);
