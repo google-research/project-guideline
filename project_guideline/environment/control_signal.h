@@ -30,6 +30,7 @@ namespace guideline::environment {
 // movement negative is clockwise and positive is counterclockwise.
 struct ControlSignal {
   bool stop = false;
+  int stop_reason = 0;
 
   // Lateral distance tangential from the line.
   float lateral_movement_meters = 0.;

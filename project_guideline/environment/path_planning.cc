@@ -314,14 +314,14 @@ TurnPointOutput SimpleControlSystem::FindTurnPoint(
   return TurnPointOutput(turn_point, turn_angle, turn_point_distance_meters);
 }
 
-bool SimpleControlSystem::IsStopCondition() {
+int SimpleControlSystem::IsStopCondition() {
   {
     absl::MutexLock lock(&control_signal_history_lock_);
 
     auto current_control_signal = control_signal_history_.back();
     // Out of guideline scenario.
     if (std::isnan(current_control_signal.lateral_movement_meters)) {
-      return true;
+      return 4;
     }
 
     // Deviation from the guideline scenario.
@@ -351,19 +351,21 @@ bool SimpleControlSystem::IsStopCondition() {
         }
       }
       if (!has_in_range_movement) {
-        return true;
+        return 5;
       }
     }
-    return false;
+    return 0;
   }
 }
 
 // Post processes and returns final control signal to be communicated to the
 // human.
 const ControlSignal SimpleControlSystem::PostProcessControlSignals() {
-  if (IsStopCondition()) {
+  int stop_condition = IsStopCondition();
+  if (stop_condition != 0) {
     ControlSignal stop_signal;
     stop_signal.stop = true;
+    stop_signal.stop_reason = stop_condition;
     obstacle_latch_.Reset();
     return stop_signal;
   }
