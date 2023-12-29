@@ -128,8 +128,5 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@mediapipe//mediapipe/framework/port:opencv_core",
-        "@mediapipe//mediapipe/framework/port:opencv_highgui",
-        "@mediapipe//mediapipe/framework/port:opencv_imgcodecs",
-        "@mediapipe//mediapipe/framework/port:opencv_imgproc",
     ],
 )
