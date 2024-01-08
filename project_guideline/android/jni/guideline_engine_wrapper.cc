@@ -179,6 +179,9 @@ absl::Status GuidelineEngineWrapper::Initialize() {
       });
 
   guideline_engine_->guidance_system().AddControlSignalCallback(
+      absl::bind_front(&GuidelineEngineWrapper::OnControlSignal, this));
+
+  guideline_engine_->guidance_system().AddControlSignalCallback(
       absl::bind_front(&EnvironmentMapRenderer::OnControlSignal,
                        &environment_map_renderer_));
 
