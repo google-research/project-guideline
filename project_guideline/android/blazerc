@@ -5,9 +5,6 @@ build --nostamp
 # to build for emulator (--config=android_x86).
 build --config=android_arm64
 
-# Support for de-sugaring Java 8 libraries.
-build --config=android_java8_libs
-
 # Native code requires min NDK 30 APIs.
 build --android_ndk_min_sdk_version=30
 
