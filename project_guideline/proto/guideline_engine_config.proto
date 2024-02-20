@@ -25,7 +25,7 @@ option java_package = "com.google.research.guideline.proto";
 option optimize_for = LITE_RUNTIME;
 
 // Configuration for the Guideline Engine.
-// Next available index: 9
+// Next available index: 11
 message GuidelineEngineConfig {
   message FileDescriptor {
     optional int32 fd = 1;
@@ -59,6 +59,7 @@ message GuidelineEngineConfig {
   optional PointCloudOptions point_cloud_options = 7;
   optional AudioSystemOptions audio_system_options = 8;
   optional VisualizationOptions visualization_options = 9;
+  optional DebugSignalProviderOptions debug_signal_provider_options = 10;
 }
 
 message KeypointExtractorOptions {
@@ -98,6 +99,9 @@ message LegacySoundPackOptions {
   optional float max_rotation_degrees = 2 [default = 45];
   optional float sensitivity_curvature = 3 [default = 0.4];
   optional float warning_threshold_meters = 4 [default = 1.5];
+  optional bool enable_curve_sound = 5 [default = false];
+  optional bool use_fast_curve_sound = 6 [default = false];
+  optional float turn_sensitivity = 7 [default = 0.4];
 }
 
 message PointCloudOptions {
@@ -205,6 +209,7 @@ message SimpleControlSystemOptions {
       [default = 0];
   optional float rotational_movement_abs_max_threshold_degrees = 10
       [default = 90];
+  optional float rotational_movement_ahead_meters = 16 [default = 3];
   optional int32 max_history_to_keep = 11 [default = 300];
   optional float min_turn_point_distance_meters = 12 [default = 2];
   optional float track_width_meters = 13 [default = 3];
@@ -239,4 +244,8 @@ message GuidanceSystemOptions {
 message VisualizationOptions {
   // Enable ML debug overlay showing segmentation mask and depth image results.
   optional bool enable_ml_overlay = 1;
+}
+
+message DebugSignalProviderOptions {
+  optional bool enable_debug_signal_provider = 1;
 }
