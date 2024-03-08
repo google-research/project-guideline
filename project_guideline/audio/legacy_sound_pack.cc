@@ -14,6 +14,7 @@
 
 #include "project_guideline/audio/legacy_sound_pack.h"
 
+#include <cmath>
 #include <complex>
 #include <cstdlib>
 #include <memory>
@@ -33,6 +34,8 @@
 #include "project_guideline/audio/assets/legacy_v4_2_warning_embed.h"
 #include "project_guideline/audio/assets/legacy_warning_embed.h"
 #include "project_guideline/audio/assets/obstacle_embed.h"
+#include "project_guideline/audio/assets/turn_embed.h"
+#include "project_guideline/audio/assets/turn_fast_embed.h"
 #include "project_guideline/audio/assets/warning_pitch_shift_2x_embed.h"
 #include "project_guideline/audio/sound_player.h"
 #include "project_guideline/logging/guideline_logger.h"
@@ -60,6 +63,15 @@ static PanningStrategy LinearThresholdPan(float threshold) {
         util::ClampedLerp<float>(std::abs(input), threshold, 1, 0, 1);
     left = input > 0 ? volume : 0;
     right = input < 0 ? volume : 0;
+  };
+}
+
+static PanningStrategy LegacyThresholdPan(float threshold, bool reversed) {
+  return [threshold, reversed](float input, float& left, float& right) {
+    float l = util::ClampedLerp<float>(input, threshold, 1, 0, 1);
+    float r = util::ClampedLerp<float>(input, -1, -threshold, 1, 0);
+    left = reversed ? r : l;
+    right = reversed ? l : r;
   };
 }
 
@@ -151,12 +163,26 @@ absl::Status LegacySoundPack::Initialize() {
   CHECK(steering_sound_toc);
   CHECK(warning_sound_toc);
 
+  const util::EmbeddedFileToc* curve_sound_toc = nullptr;
+  if (options_.use_fast_curve_sound()) {
+    curve_sound_toc = turn_fast_embed_create();
+  } else {
+    curve_sound_toc = turn_embed_create();
+  }
+  curve_panner_ = LegacyThresholdPan(options_.turn_sensitivity(), false);
+  curve_rate_strategy_ = [](float input) { return 1; };
+
+  CHECK(curve_sound_toc);
+
   GL_ASSIGN_OR_RETURN(steering_sound_,
                       sound_player_->LoadStereoSound(steering_sound_toc));
   sound_player_->SetLoop(steering_sound_, true);
   GL_ASSIGN_OR_RETURN(warning_sound_,
                       sound_player_->LoadStereoSound(warning_sound_toc));
   sound_player_->SetLoop(warning_sound_, true);
+  GL_ASSIGN_OR_RETURN(curve_sound_,
+                      sound_player_->LoadStereoSound(curve_sound_toc));
+  sound_player_->SetLoop(curve_sound_, true);
   GL_ASSIGN_OR_RETURN(obstacle_sound_,
                       sound_player_->LoadStereoSound(obstacle_embed_create()));
   sound_player_->SetLoop(obstacle_sound_, true);
@@ -209,6 +235,21 @@ void LegacySoundPack::OnControlSignal(
   sound_player_->SetPlaybackRate(warning_sound_,
                                  warning_rate_strategy_(warning_position));
   sound_player_->Play(warning_sound_);
+
+  float curve_panning_position = 0;
+  curve_panning_position = util::ClampedLerp<float>(
+      signal.rotation_movement_ahead_degrees, -options_.max_rotation_degrees(),
+      options_.max_rotation_degrees(), -1, 1);
+  float curve_left_volume = 0;
+  float curve_right_volume = 0;
+  curve_panning_position =
+      ApplyShaping(curve_panning_position, options_.sensitivity_curvature());
+  curve_panner_(curve_panning_position, curve_left_volume, curve_right_volume);
+  sound_player_->SetStereoVolume(curve_sound_, curve_left_volume,
+                                 curve_right_volume);
+  sound_player_->SetPlaybackRate(curve_sound_,
+                                 curve_rate_strategy_(curve_panning_position));
+  sound_player_->Play(curve_sound_);
 }
 
 std::optional<const util::EmbeddedFileToc*>

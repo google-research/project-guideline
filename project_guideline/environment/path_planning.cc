@@ -280,6 +280,21 @@ RotationMovementOutput SimpleControlSystem::ComputeRotationalMovement(
   return RotationMovementOutput(rotation_movement_degrees, all_rotations,
                                 num_guideline_points_per_segment);
 }
+RotationMovementOutput
+SimpleControlSystem::ComputeRotationalMovementWithLookAhead(
+    const Vector3d& human_direction,
+    absl::Span<const Vector3d> guideline_points,
+    int closest_guideline_point_indx, float rotational_movement_ahead_meter,
+    const Axis3 vertical_axis) {
+  auto indices_skip =
+      static_cast<size_t>(rotational_movement_ahead_meter *
+                          options_.num_guideline_points_per_meter());
+  auto closest_guideline_point_indx_offset =
+      closest_guideline_point_indx + indices_skip;
+  return ComputeRotationalMovement(human_direction, guideline_points,
+                                   closest_guideline_point_indx_offset,
+                                   vertical_axis);
+}
 
 TurnPointOutput SimpleControlSystem::FindTurnPoint(
     const Vector3d& human_position, absl::Span<const Vector3d> guideline_points,
@@ -447,6 +462,10 @@ ControlSignal SimpleControlSystem::GenerateControlSignal(
     auto rotational_movement = ComputeRotationalMovement(
         human_direction, guideline_points,
         lateral_movement.closest_guideline_point_indx, vertical_axis);
+    auto rotational_movement_ahead = ComputeRotationalMovementWithLookAhead(
+        human_direction, guideline_points,
+        lateral_movement.closest_guideline_point_indx,
+        options_.rotational_movement_ahead_meters(), vertical_axis);
     auto turn_point = FindTurnPoint(
         human_position, guideline_points,
         lateral_movement.closest_guideline_point_indx,
@@ -458,6 +477,8 @@ ControlSignal SimpleControlSystem::GenerateControlSignal(
         lateral_movement.lateral_movement_meters;
     current_control_signal.rotation_movement_degrees =
         rotational_movement.rotation_movement_degrees;
+    current_control_signal.rotation_movement_ahead_degrees =
+        rotational_movement_ahead.rotation_movement_degrees;
     current_control_signal.turn_point = turn_point.turn_point;
     current_control_signal.turn_angle_degrees = turn_point.turn_angle_degrees;
     current_control_signal.turn_point_distance_meters =
