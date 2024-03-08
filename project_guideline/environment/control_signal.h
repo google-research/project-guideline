@@ -30,6 +30,7 @@ namespace guideline::environment {
 // movement negative is clockwise and positive is counterclockwise.
 struct ControlSignal {
   bool stop = false;
+  int stop_reason = 0;
 
   // Lateral distance tangential from the line.
   float lateral_movement_meters = 0.;
@@ -37,6 +38,10 @@ struct ControlSignal {
   // Desired user rotational movement based on user position and direction of
   // upcoming line.
   float rotation_movement_degrees = 0.;
+
+  // Desired user rotational movement based on user position, direction of
+  // upcoming line and ahead distance omitted.
+  float rotation_movement_ahead_degrees = 0.;
 
   // World coordinates of an upcoming turn point, if any.
   std::optional<Eigen::Vector3d> turn_point = std::nullopt;
