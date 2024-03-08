@@ -80,3 +80,36 @@ cc_library(
         "@com_google_absl//absl/status",
     ],
 )
+
+cc_library(
+    name = "debug_signal",
+    hdrs = ["debug_signal.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "debug_signal_provider",
+    srcs = ["debug_signal_provider.cc"],
+    hdrs = ["debug_signal_provider.h"],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        ":debug_signal",
+        "//project_guideline/camera:camera_model",
+        "//project_guideline/environment:control_signal",
+        "//project_guideline/motion:tracking_feature",
+        "//project_guideline/proto:guideline_engine_config_cc_proto",
+        "//project_guideline/util:image",
+        "//project_guideline/util:transformation",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@eigen_archive//:eigen3",
+    ],
+)
