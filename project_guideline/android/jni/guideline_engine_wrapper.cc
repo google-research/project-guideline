@@ -252,9 +252,7 @@ void GuidelineEngineWrapper::OnControlSignal(
     const environment::ControlSignal& control_signal) {
   absl::MutexLock lock(&control_signal_callback_mutex_);
   if (control_signal_calback_) {
-    control_signal_calback_->OnControlSignal(
-        control_signal.rotation_movement_degrees,
-        control_signal.lateral_movement_meters, control_signal.stop);
+    control_signal_calback_->OnControlSignal(control_signal.AsProto());
   }
 }
 

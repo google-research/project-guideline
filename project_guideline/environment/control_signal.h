@@ -18,6 +18,7 @@
 #include <optional>
 
 #include "Eigen/Core"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/proto/control_signal_data.pb.h"
 
 namespace guideline::environment {
@@ -30,6 +31,9 @@ namespace guideline::environment {
 // movement negative is clockwise and positive is counterclockwise.
 struct ControlSignal {
   bool stop = false;
+
+  // The reason for stopping, when stop = true.
+  StopReason stop_reason = StopReason::STOP_REASON_UNSPECIFIED;
 
   // Lateral distance tangential from the line.
   float lateral_movement_meters = 0.;
@@ -82,6 +86,16 @@ struct ControlSignal {
   std::optional<Eigen::Vector3d> right_edge_point = std::nullopt;
 
   ControlSignalData extra_data;
+
+  // Converts this ControlSignal into a lightweight proto representation.
+  ControlSignalLite AsProto() const {
+    ControlSignalLite lite;
+    lite.set_stop(stop);
+    lite.set_stop_reason(stop_reason);
+    lite.set_rotation_degrees(rotation_movement_degrees);
+    lite.set_lateral_movement_meters(lateral_movement_meters);
+    return lite;
+  }
 };
 
 }  // namespace guideline::environment

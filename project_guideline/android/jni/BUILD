@@ -69,6 +69,8 @@ cc_library(
     deps = [
         ":guideline_engine_wrapper",
         ":jni_helpers",
+        "//project_guideline/proto:control_signal_cc_proto",
+        "//project_guideline/proto:guideline_engine_config_cc_proto",
     ],
 )
 
@@ -90,6 +92,7 @@ cc_library(
         "//project_guideline/environment:control_signal",
         "//project_guideline/logging:guideline_logger",
         "//project_guideline/logging:noop_guideline_logger",
+        "//project_guideline/proto:control_signal_cc_proto",
         "//project_guideline/proto:guideline_engine_config_cc_proto",
         "//project_guideline/util:status",
         "//project_guideline/visualization:camera_feed_renderer",

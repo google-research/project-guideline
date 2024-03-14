@@ -29,6 +29,7 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     deps = [
+        "//project_guideline/proto:control_signal_java_proto_lite",
         "//project_guideline/proto:guideline_engine_config_java_proto_lite",
         "//third_party/hilt:android_entry_point",
         "//third_party/protobuf:duration_java_proto_lite",

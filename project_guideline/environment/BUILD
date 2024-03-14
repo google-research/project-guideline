@@ -26,6 +26,7 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
+        "//project_guideline/proto:control_signal_cc_proto",
         "//project_guideline/proto:control_signal_data_cc_proto",
         "@eigen_archive//:eigen3",
     ],

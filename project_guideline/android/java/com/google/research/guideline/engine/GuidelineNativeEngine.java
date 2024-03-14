@@ -21,7 +21,9 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.util.Log;
 import androidx.annotation.Keep;
+import com.google.research.guideline.proto.ControlSignalLite;
 import com.google.research.guideline.proto.GuidelineEngineConfig;
+import java.io.IOException;
 
 /** Interface to the native Guideline engine. */
 public final class GuidelineNativeEngine {
@@ -32,17 +34,14 @@ public final class GuidelineNativeEngine {
 
   /** Callback for receiving control signals from native engine. */
   public interface ControlSignalCallback {
-    /**
-     * Invoked when a new control signal is generated.
-     *
-     * @param rotationDegrees the angle in degrees from the users current heading to a point some
-     *     distance ahead of the runner
-     * @param lateralMovementMeters the tangential distance in meters from the runner to the closest
-     *     point on the line
-     * @param stop {@code true} if the user should stop and no further guidance given
-     */
+    /** Invoked when a new control signal is generated. */
+    public void onControlSignal(ControlSignalLite controlSignal);
+  }
+
+  /** Callback passed to native code for receiving serialized ControlSignal proto callbacks. */
+  public interface NativeControlSignalCallback {
     @Keep
-    public void onControlSignal(float rotationDegrees, float lateralMovementMeters, boolean stop);
+    public void onControlSignal(byte[] serializedControlSignal);
   }
 
   private final long handle;
@@ -121,7 +120,15 @@ public final class GuidelineNativeEngine {
   }
 
   public void setControlSignalCallback(ControlSignalCallback callback) {
-    nativeSetControlSignalCallback(handle, callback);
+    nativeSetControlSignalCallback(
+        handle,
+        (serializedControlSignal) -> {
+          try {
+            callback.onControlSignal(ControlSignalLite.parseFrom(serializedControlSignal));
+          } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to parse ControlSignal", e);
+          }
+        });
   }
 
   public void onGlSurfaceCreated() {
@@ -176,7 +183,7 @@ public final class GuidelineNativeEngine {
   private static native void nativeStop(long handle);
 
   private static native void nativeSetControlSignalCallback(
-      long handle, ControlSignalCallback callback);
+      long handle, NativeControlSignalCallback callback);
 
   private static native void nativeOnGlSurfaceCreated(long handle);
 

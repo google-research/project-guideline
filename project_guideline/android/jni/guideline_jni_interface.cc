@@ -22,6 +22,7 @@
 #include "absl/log/log.h"
 #include "project_guideline/android/jni/guideline_engine_wrapper.h"
 #include "project_guideline/android/jni/jni_helpers.h"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 
 #define JNI_METHOD_NAME(method_name) \
@@ -32,6 +33,7 @@
 namespace {
 
 using guideline::ControlSignalCallbackWrapper;
+using guideline::ControlSignalLite;
 using guideline::GuidelineEngineConfig;
 using guideline::GuidelineEngineWrapper;
 using guideline::jni::EnvRef;
@@ -73,7 +75,7 @@ class ControlSignalCallbackImpl : public ControlSignalCallbackWrapper {
     JNIEnv* env = EnvRef::GetEnv();
     callback_object_ref_ = env->NewGlobalRef(callback_object);
     jclass cls = env->GetObjectClass(callback_object_ref_);
-    method_id_ = env->GetMethodID(cls, "onControlSignal", "(FFZ)V");
+    method_id_ = env->GetMethodID(cls, "onControlSignal", "([B)V");
   }
 
   ~ControlSignalCallbackImpl() override {
@@ -81,12 +83,15 @@ class ControlSignalCallbackImpl : public ControlSignalCallbackWrapper {
     env->DeleteGlobalRef(callback_object_ref_);
   }
 
-  void OnControlSignal(float rotation_degrees, float lateral_distance_meters,
-                       bool stop) override {
+  void OnControlSignal(const ControlSignalLite& signal) override {
     ThreadGuard thread_guard;
-    EnvRef::GetEnv()->CallVoidMethod(callback_object_ref_, method_id_,
-                                     rotation_degrees, lateral_distance_meters,
-                                     stop);
+    auto* env = EnvRef::GetEnv();
+    std::string serialized_signal = signal.SerializeAsString();
+    jbyteArray serialized_array = env->NewByteArray(serialized_signal.size());
+    env->SetByteArrayRegion(
+        serialized_array, 0, serialized_signal.size(),
+        reinterpret_cast<const jbyte*>(serialized_signal.c_str()));
+    env->CallVoidMethod(callback_object_ref_, method_id_, serialized_array);
   }
 
  private:

@@ -1,0 +1,48 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+
+package guideline;
+
+// option cc_api_version = 2;
+// option java_api_version = 2;
+option java_multiple_files = true;
+option java_package = "com.google.research.guideline.proto";
+option optimize_for = LITE_RUNTIME;
+
+// Lightweight proto representation of the ControlSignal.
+// Used to pass signal data between native code and Java. Should not contain
+// large amounts of data.
+message ControlSignalLite {
+  // Indicates whether the user should stop navigating.
+  optional bool stop = 1;
+
+  // Indicates the reason why stop signal was given, if currently in stopped
+  // state.
+  optional StopReason stop_reason = 2;
+
+  // The angle in degrees from the users current heading to a point some
+  // distance ahead of the runner.
+  optional float rotation_degrees = 3;
+
+  // The tangetial distance in meters form the runner to the closest point on
+  // the line.
+  optional float lateral_movement_meters = 4;
+}
+
+// Indicates the reason for stop signal.
+enum StopReason {
+  STOP_REASON_UNSPECIFIED = 0;
+}

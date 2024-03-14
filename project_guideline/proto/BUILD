@@ -20,6 +20,30 @@ package(
 )
 
 proto_library(
+    name = "control_signal_proto",
+    srcs = ["control_signal.proto"],
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+cc_proto_library(
+    name = "control_signal_cc_proto",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [":control_signal_proto"],
+)
+
+java_lite_proto_library(
+    name = "control_signal_java_proto_lite",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [":control_signal_proto"],
+)
+
+proto_library(
     name = "control_signal_data_proto",
     srcs = ["control_signal_data.proto"],
     visibility = [

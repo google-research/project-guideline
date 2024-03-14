@@ -32,6 +32,7 @@
 #include "project_guideline/android/jni/jni_helpers.h"
 #include "project_guideline/engine/guideline_engine.h"
 #include "project_guideline/environment/control_signal.h"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "project_guideline/visualization/camera_feed_renderer.h"
 #include "project_guideline/visualization/environment_map_renderer.h"
@@ -41,8 +42,7 @@ namespace guideline {
 class ControlSignalCallbackWrapper {
  public:
   virtual ~ControlSignalCallbackWrapper() = default;
-  virtual void OnControlSignal(float rotation_degrees,
-                               float lateral_distance_meters, bool stop) = 0;
+  virtual void OnControlSignal(const ControlSignalLite& control_signal) = 0;
 };
 
 class GuidelineEngineWrapper {
