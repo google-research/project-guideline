@@ -29,6 +29,7 @@
 #include "project_guideline/depth/point_cloud_util.h"
 #include "project_guideline/environment/obstacle.h"
 #include "project_guideline/motion/tracking_feature.h"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/util/geometry.h"
 #include "project_guideline/util/image.h"
 #include <google/protobuf/util/time_util.h>
@@ -139,7 +140,7 @@ GuidanceSystem::GuidanceSystem(const GuidanceSystemOptions& options,
       control_system_(std::move(control_system)) {}
 
 absl::Status GuidanceSystem::Stop() {
-  ResetAndSendStopSignal();
+  ResetAndSendStopSignal(StopReason::STOP_REASON_APP_INITIATED);
 
   return absl::OkStatus();
 }
@@ -260,7 +261,7 @@ void GuidanceSystem::OnTrackingStateChanged(const bool is_tracking) {
   // OnCameraPose will start being invoked again with from a new reference
   // point.
   if (!is_tracking) {
-    ResetAndSendStopSignal();
+    ResetAndSendStopSignal(StopReason::STOP_REASON_TRACKING_STATE_CHANGED);
   }
 }
 
@@ -372,7 +373,7 @@ void GuidanceSystem::OnDetection(
                                   first_empty_keypoints_timestamp_us_) >=
                eager_stop_threshold) {
       first_empty_keypoints_timestamp_us_ = 0;
-      ResetAndSendStopSignal();
+      ResetAndSendStopSignal(StopReason::STOP_REASON_NO_KEY_POINT);
     }
   }
 }
@@ -445,7 +446,7 @@ void GuidanceSystem::ProcessDepthMap(int64_t timestamp_us,
   LogPointCloud(timestamp_us, *environment_, *logger_);
 }
 
-void GuidanceSystem::ResetAndSendStopSignal() {
+void GuidanceSystem::ResetAndSendStopSignal(StopReason reason) {
   {
     absl::MutexLock lock(&pending_camera_poses_mutex_);
     pending_detection_poses_.clear();
@@ -457,6 +458,7 @@ void GuidanceSystem::ResetAndSendStopSignal() {
   // Generate a stop signal and notify callbacks.
   ControlSignal stop_signal;
   stop_signal.stop = true;
+  stop_signal.stop_reason = reason;
 
   std::vector<ControlSignalCallback> callbacks;
   {

@@ -137,6 +137,11 @@ class SimpleControlSystem : public ControlSystem {
       const ::Eigen::Vector3d& human_direction,
       absl::Span<const ::Eigen::Vector3d> guideline_points,
       int closest_guideline_point_indx, util::Axis3 vertical_axis);
+  RotationMovementOutput ComputeRotationalMovementWithLookAhead(
+      const ::Eigen::Vector3d& human_direction,
+      absl::Span<const ::Eigen::Vector3d> guideline_points,
+      int closest_guideline_point_indx, float rotational_movement_ahead_meter,
+      util::Axis3 vertical_axis);
   TurnPointOutput FindTurnPoint(
       const ::Eigen::Vector3d& human_position,
       absl::Span<const ::Eigen::Vector3d> guideline_points,
@@ -150,7 +155,7 @@ class SimpleControlSystem : public ControlSystem {
         obstacle_latch_(/*value_threshold=*/0.5f,
                         options.obstacle_smoothing_window_frames(),
                         options.obstacle_smoothing_min_interval_frames()) {}
-  bool IsStopCondition();
+  StopReason IsStopCondition();
   const ControlSignal PostProcessControlSignals();
   SimpleControlSystemOptions options_;
   absl::Mutex control_signal_history_lock_;

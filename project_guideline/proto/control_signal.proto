@@ -37,12 +37,31 @@ message ControlSignalLite {
   // distance ahead of the runner.
   optional float rotation_degrees = 3;
 
+  // Desired user rotational movement based on user position, direction of
+  // upcoming line and ahead distance omitted.
+  optional float rotation_ahead_degrees = 5;
+
   // The tangetial distance in meters form the runner to the closest point on
   // the line.
   optional float lateral_movement_meters = 4;
+
+  // Angle in degrees representing sharpness of the turn indicated by
+  // turn_point.
+  optional float turn_angle_degrees = 6;
+
+  // Distance in meters to an upcoming turn indicated by turn_point.
+  optional float turn_distance_meters = 7;
+
+  // The speed of the user in meters per second.
+  optional float speed_meters_per_second = 8;
 }
 
 // Indicates the reason for stop signal.
 enum StopReason {
   STOP_REASON_UNSPECIFIED = 0;
+  STOP_REASON_APP_INITIATED = 1;
+  STOP_REASON_TRACKING_STATE_CHANGED = 2;
+  STOP_REASON_NO_KEY_POINT = 3;
+  STOP_REASON_LATERAL_NAN = 4;
+  STOP_REASON_NO_IN_RANGE_MOVEMENT = 5;
 }

@@ -14,8 +14,10 @@
 
 #include "project_guideline/visualization/ml_output_renderer.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <GLES3/gl3.h>
 #include <opencv2/core/mat.hpp>
@@ -43,8 +45,14 @@ const GLchar* const kFragmentShader = SHADER(
     uniform sampler2D maskTexture;
     uniform sampler2D depthTexture;
     uniform sampler2D depthColormap;
+    uniform vec2 uKeypoints[100];
+    uniform int uKeypointCount;
     in vec2 textureCoords;
     out vec4 diffuseColor;
+
+    const float KEYPOINT_RADIUS = 0.005;
+    const vec4 KEYPOINT_PRIMARY_COLOR = vec4(1, 0, 0, 1.0);
+    const vec4 KEYPOINT_SECONDARY_COLOR = vec4(0, 0, 1, 1.0);
 
     const float MIN_DEPTH = 0.01;
     const float MAX_DEPTH = 5.0;
@@ -53,6 +61,15 @@ const GLchar* const kFragmentShader = SHADER(
       vec4 result = mix(under, over, over.a);
       result.a = over.a + under.a * (1.0 - over.a);
       return result;
+    }
+
+    vec4 keypoints(vec2 position) {
+      for (int i = 0; i < uKeypointCount; i++) {
+        if (distance(position, uKeypoints[i]) < KEYPOINT_RADIUS) {
+          return mix(KEYPOINT_PRIMARY_COLOR, KEYPOINT_SECONDARY_COLOR, float(i) / float(uKeypointCount));
+        }
+      }
+      return vec4(0, 0, 0, 0);
     }
 
     void main() {
@@ -70,6 +87,7 @@ const GLchar* const kFragmentShader = SHADER(
       depthColor.w = depthTexel > MIN_DEPTH ? 0.6 : 0.0;
 
       diffuseColor = blend(depthColor, maskColor);
+      diffuseColor = blend(diffuseColor, keypoints(textureCoords));
     });
 
 const GLchar* const kVertexShader = SHADER(
@@ -245,6 +263,9 @@ absl::Status MlOutputRenderer::OnGlInit() {
   uniform_depth_texture_ = glGetUniformLocation(program_, "depthTexture");
   uniform_depth_colormap_ = glGetUniformLocation(program_, "depthColormap");
 
+  uniform_keypoint_count_ = glGetUniformLocation(program_, "uKeypointCount");
+  uniform_keypoints_ = glGetUniformLocation(program_, "uKeypoints");
+
   CheckGlError("init shaders");
 
   return absl::OkStatus();
@@ -253,8 +274,15 @@ absl::Status MlOutputRenderer::OnGlInit() {
 void MlOutputRenderer::SetViewport(int width, int height) {
   // The camera preview uses 16:9 aspect ratio, while the CPU image used for
   // processing in the pipeline is the full 4:3 sensor image.
-  constexpr float kPreviewAspectRatio = 16.0f / 9.0f;
-  constexpr float kCpuImageAspectRatio = 4.0f / 3.0f;
+  float kPreviewAspectRatio;
+  float kCpuImageAspectRatio;
+  if (width < height) {
+    kPreviewAspectRatio = 9.0f / 16.0f;
+    kCpuImageAspectRatio = 3.0f / 4.0f;
+  } else {
+    kPreviewAspectRatio = 16.0f / 9.0f;
+    kCpuImageAspectRatio = 4.0f / 3.0f;
+  }
 
   // The actual width of the preview image.
   float preview_width = height * kPreviewAspectRatio;
@@ -282,9 +310,11 @@ void MlOutputRenderer::SetViewport(int width, int height) {
 }
 
 void MlOutputRenderer::OnSegmentationMask(
-    std::shared_ptr<const util::ConfidenceMask> segmentation_mask) {
+    std::shared_ptr<const util::ConfidenceMask> segmentation_mask,
+    const std::vector<Eigen::Vector3f>& keypoints) {
   absl::MutexLock lock(&mutex_);
   segmentation_mask_ = segmentation_mask;
+  keypoints_ = keypoints;
 }
 
 void MlOutputRenderer::OnDepthMap(
@@ -321,6 +351,29 @@ void MlOutputRenderer::Render() {
   }
 
   glUseProgram(program_);
+
+  {
+    absl::MutexLock lock(&mutex_);
+    if (!keypoints_.empty()) {
+      const size_t kMaxKeypointCount = 100;
+      if (keypoints_.size() > kMaxKeypointCount) {
+        keypoints_.resize(kMaxKeypointCount);
+      }
+      glUniform1i(uniform_keypoint_count_, keypoints_.size());
+      CheckGlError("update keypoint count");
+      std::vector<GLfloat> gl_points;
+      for (const auto& point : keypoints_) {
+        gl_points.push_back(point.x());
+        gl_points.push_back(point.y());
+      }
+      glUniform2fv(uniform_keypoints_, gl_points.size(), gl_points.data());
+      CheckGlError("update keypoints data");
+    } else {
+      glUniform1i(uniform_keypoint_count_, 0);
+      CheckGlError("no keypoints");
+    }
+    CheckGlError("update keypoints");
+  }
   CheckGlError("use program");
 
   glUniform1i(uniform_mask_texture_, kMaskTextureUnit);

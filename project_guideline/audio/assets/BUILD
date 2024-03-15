@@ -45,6 +45,8 @@ ALL_OGG_ASSETS = [
     "steering_on_course_impulse_tick",
     "stopstopstop",
     "straight",
+    "turn",
+    "turn_fast",
     "warning_pitch_shift_2x",
 ]
 
