@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 // clang-format off
 // gl3 must be before gl2ext
@@ -37,7 +38,8 @@ class MlOutputRenderer {
   MlOutputRenderer(int mask_rotation_degrees);
   absl::Status OnGlInit();
 
-  void OnSegmentationMask(std::shared_ptr<const util::ConfidenceMask> mask);
+  void OnSegmentationMask(std::shared_ptr<const util::ConfidenceMask> mask,
+                          const std::vector<Eigen::Vector3f>& keypoints);
   void OnDepthMap(std::shared_ptr<const util::DepthImage> depth);
 
   void SetViewport(int width, int height);
@@ -50,6 +52,8 @@ class MlOutputRenderer {
   Eigen::Matrix4f transform_matrix_ ABSL_GUARDED_BY(mutex_);
   std::shared_ptr<const util::ConfidenceMask> segmentation_mask_
       ABSL_GUARDED_BY(mutex_) = nullptr;
+  std::vector<Eigen::Vector3f> keypoints_ ABSL_GUARDED_BY(mutex_);
+
   std::shared_ptr<const util::DepthImage> depth_map_ ABSL_GUARDED_BY(mutex_) =
       nullptr;
 
@@ -67,6 +71,9 @@ class MlOutputRenderer {
   GLint uniform_mask_texture_;
   GLint uniform_depth_texture_;
   GLint uniform_depth_colormap_;
+
+  GLuint uniform_keypoint_count_;
+  GLuint uniform_keypoints_;
 };
 
 }  // namespace guideline::visualization
