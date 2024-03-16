@@ -25,7 +25,7 @@ option java_package = "com.google.research.guideline.proto";
 option optimize_for = LITE_RUNTIME;
 
 // Configuration for the Guideline Engine.
-// Next available index: 9
+// Next available index: 10
 message GuidelineEngineConfig {
   message FileDescriptor {
     optional int32 fd = 1;
