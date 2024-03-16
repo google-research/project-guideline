@@ -102,7 +102,6 @@ cc_library(
         "//project_guideline/proto:guideline_engine_config_cc_proto",
         "//project_guideline/util:image",
         "//project_guideline/util:transformation",
-        "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/memory",

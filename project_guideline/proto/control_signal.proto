@@ -59,4 +59,9 @@ message ControlSignalLite {
 // Indicates the reason for stop signal.
 enum StopReason {
   STOP_REASON_UNSPECIFIED = 0;
+  STOP_REASON_APP_INITIATED = 1;
+  STOP_REASON_TRACKING_STATE_CHANGED = 2;
+  STOP_REASON_NO_KEY_POINT = 3;
+  STOP_REASON_LATERAL_NAN = 4;
+  STOP_REASON_NO_IN_RANGE_MOVEMENT = 5;
 }

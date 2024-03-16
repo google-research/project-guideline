@@ -155,7 +155,7 @@ class SimpleControlSystem : public ControlSystem {
         obstacle_latch_(/*value_threshold=*/0.5f,
                         options.obstacle_smoothing_window_frames(),
                         options.obstacle_smoothing_min_interval_frames()) {}
-  bool IsStopCondition();
+  StopReason IsStopCondition();
   const ControlSignal PostProcessControlSignals();
   SimpleControlSystemOptions options_;
   absl::Mutex control_signal_history_lock_;

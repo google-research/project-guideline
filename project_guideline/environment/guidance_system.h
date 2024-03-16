@@ -34,6 +34,7 @@
 #include "project_guideline/environment/path_planning.h"
 #include "project_guideline/logging/guideline_logger.h"
 #include "project_guideline/motion/tracking_feature.h"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/util/hit_test_util.h"
 #include "project_guideline/util/image.h"
 #include "project_guideline/util/transformation.h"
@@ -103,7 +104,7 @@ class GuidanceSystem {
                        const util::DepthImage& depth_map,
                        const PendingFeatures& features);
 
-  void ResetAndSendStopSignal();
+  void ResetAndSendStopSignal(StopReason reason);
 
   std::shared_ptr<camera::CameraModel> GetCameraModel()
       ABSL_LOCKS_EXCLUDED(camera_model_mutex_);

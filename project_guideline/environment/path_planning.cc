@@ -29,6 +29,7 @@
 #include "absl/log/log.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "project_guideline/proto/control_signal.pb.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "project_guideline/util/geometry.h"
 
@@ -329,14 +330,14 @@ TurnPointOutput SimpleControlSystem::FindTurnPoint(
   return TurnPointOutput(turn_point, turn_angle, turn_point_distance_meters);
 }
 
-bool SimpleControlSystem::IsStopCondition() {
+StopReason SimpleControlSystem::IsStopCondition() {
   {
     absl::MutexLock lock(&control_signal_history_lock_);
 
     auto current_control_signal = control_signal_history_.back();
     // Out of guideline scenario.
     if (std::isnan(current_control_signal.lateral_movement_meters)) {
-      return true;
+      return StopReason::STOP_REASON_LATERAL_NAN;
     }
 
     // Deviation from the guideline scenario.
@@ -366,19 +367,21 @@ bool SimpleControlSystem::IsStopCondition() {
         }
       }
       if (!has_in_range_movement) {
-        return true;
+        return StopReason::STOP_REASON_NO_IN_RANGE_MOVEMENT;
       }
     }
-    return false;
+    return StopReason::STOP_REASON_UNSPECIFIED;
   }
 }
 
 // Post processes and returns final control signal to be communicated to the
 // human.
 const ControlSignal SimpleControlSystem::PostProcessControlSignals() {
-  if (IsStopCondition()) {
+  StopReason stop_reason = IsStopCondition();
+  if (stop_reason != StopReason::STOP_REASON_UNSPECIFIED) {
     ControlSignal stop_signal;
     stop_signal.stop = true;
+    stop_signal.stop_reason = stop_reason;
     obstacle_latch_.Reset();
     return stop_signal;
   }
