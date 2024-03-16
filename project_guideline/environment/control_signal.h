@@ -42,6 +42,10 @@ struct ControlSignal {
   // upcoming line.
   float rotation_movement_degrees = 0.;
 
+  // Desired user rotational movement based on user position, direction of
+  // upcoming line and ahead distance omitted.
+  float rotation_movement_ahead_degrees = 0.;
+
   // World coordinates of an upcoming turn point, if any.
   std::optional<Eigen::Vector3d> turn_point = std::nullopt;
 
@@ -93,7 +97,11 @@ struct ControlSignal {
     lite.set_stop(stop);
     lite.set_stop_reason(stop_reason);
     lite.set_rotation_degrees(rotation_movement_degrees);
+    lite.set_rotation_ahead_degrees(rotation_movement_ahead_degrees);
     lite.set_lateral_movement_meters(lateral_movement_meters);
+    lite.set_turn_angle_degrees(turn_angle_degrees);
+    lite.set_turn_distance_meters(turn_point_distance_meters);
+    lite.set_speed_meters_per_second(speed);
     return lite;
   }
 };
