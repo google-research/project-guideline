@@ -46,7 +46,6 @@ def _gl_cc_embed_data_impl(ctx):
 
 _gl_cc_embed_data = rule(
     implementation = _gl_cc_embed_data_impl,
-    output_to_genfiles = True,
     attrs = {
         "srcs": attr.label_list(
             allow_files = True,
