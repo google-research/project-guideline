@@ -521,119 +521,117 @@ LocalTemporalRegressionBasedGuidelineAggregator::FitCurve(
 std::deque<std::vector<Vector3d>>
 LocalTemporalRegressionBasedGuidelineAggregator::
     TemporalLocalFittingWithExogeneousVariableSelection() {
-  {
-    absl::MutexLock lock(&guideline_point_cloud_lock_);
-    size_t num_timestamps = guideline_point_cloud_.size();
-    if (num_timestamps == 0) {
-      return std::deque<std::vector<Vector3d>>{};
-    }
-    float num_intervals_float =
-        (static_cast<float>(num_timestamps) /
-         static_cast<float>(options_.time_interval_size() -
-                            options_.time_interval_overlap()));
-    size_t num_intervals =
-        static_cast<size_t>(std::max(std::round(num_intervals_float), 1.0f));
-
-    std::deque<std::vector<Vector3d>> time_interval_based_fitted_points;
-    std::vector<double> xs;
-    std::vector<double> ys;
-    std::vector<double> zs;
-    std::vector<double> fitted_xs;
-    std::vector<double> fitted_ys;
-    std::vector<double> fitted_zs;
-    bool first_interval = false;
-    bool last_interval = false;
-
-    for (size_t interval = 0; interval < num_intervals; ++interval) {
-      xs.clear();
-      ys.clear();
-      zs.clear();
-      fitted_xs.clear();
-      fitted_ys.clear();
-      fitted_zs.clear();
-      first_interval = false;
-      last_interval = false;
-
-      if (interval == 0) {
-        first_interval = true;
-      }
-      if (interval == num_intervals - 1) {
-        last_interval = true;
-      }
-
-      size_t start_indx = interval * (options_.time_interval_size() -
-                                      options_.time_interval_overlap());
-      size_t end_indx =
-          std::min(start_indx + options_.time_interval_size(), num_timestamps);
-
-      // If last interval then make `end_indx` `num_timestamps`.
-      // If `num_intervals_float` is round to upper integer than we fit linear
-      // curve to avoid overfitting. E.g. if `num_intervals_float` is 3.7
-      // it will be rounded to 4, in this case we do linear fitting.
-      // If `num_intervals_float` is 4.4 it will be rounded to 4, in this case
-      // we use the curve degree by the config as in this case the timestamp
-      // interval size is bigger and has more data.
-      int degree_to_use = options_.fitted_curve_degree();
-
-      for (size_t i = start_indx; i < end_indx; ++i) {
-        for (const HitResult& point :
-             std::get<1>(guideline_point_cloud_.at(i))) {
-          xs.push_back(point.hit_pose.p().x());
-          ys.push_back(point.hit_pose.p().y());
-          zs.push_back(point.hit_pose.p().z());
-        }
-      }
-      auto exogeneous_axis = Axis3::kX;
-      double dx = util::StandardDeviation(xs);
-      double dy = util::StandardDeviation(ys);
-      double dz = util::StandardDeviation(zs);
-
-      // Using `>=` to avoid the situation where `dx=dy=dz`.
-      if (dx >= dy && dx >= dz) {
-        exogeneous_axis = Axis3::kX;
-        auto fitted_values =
-            FitCurve(xs, ys, zs, degree_to_use, first_interval, last_interval);
-        CHECK_OK(fitted_values);
-        fitted_xs = fitted_values->independent_variable_values;
-        fitted_ys = fitted_values->dependent_variable1_values;
-        fitted_zs = fitted_values->dependent_variable2_values;
-      } else if (dy >= dx && dy >= dz) {
-        exogeneous_axis = Axis3::kY;
-        auto fitted_values =
-            FitCurve(ys, xs, zs, degree_to_use, first_interval, last_interval);
-        CHECK_OK(fitted_values);
-        fitted_ys = fitted_values->independent_variable_values;
-        fitted_xs = fitted_values->dependent_variable1_values;
-        fitted_zs = fitted_values->dependent_variable2_values;
-      } else if (dz >= dx && dz >= dy) {
-        exogeneous_axis = Axis3::kZ;
-        auto fitted_values =
-            FitCurve(zs, xs, ys, degree_to_use, first_interval, last_interval);
-        CHECK_OK(fitted_values);
-        fitted_zs = fitted_values->independent_variable_values;
-        fitted_xs = fitted_values->dependent_variable1_values;
-        fitted_ys = fitted_values->dependent_variable2_values;
-      }
-      if (vertical_axis_.has_value() &&
-          vertical_axis_.value() == exogeneous_axis) {
-        LOG_EVERY_N_SEC(WARNING, kLogSeconds) << "Exogeneous axis"
-                                              << " == vertical_axis:";
-      }
-      std::vector<Vector3d> fitted_points;
-      for (size_t i = 0; i < fitted_xs.size(); ++i) {
-        fitted_points.push_back(
-            Vector3d(fitted_xs.at(i), fitted_ys.at(i), fitted_zs.at(i)));
-      }
-      time_interval_based_fitted_points.push_back(fitted_points);
-    }
-    return time_interval_based_fitted_points;
+  absl::MutexLock lock(&guideline_point_cloud_lock_);
+  size_t num_timestamps = guideline_point_cloud_.size();
+  if (num_timestamps == 0) {
+    return std::deque<std::vector<Vector3d>>{};
   }
+  float num_intervals_float =
+      (static_cast<float>(num_timestamps) /
+       static_cast<float>(options_.time_interval_size() -
+                          options_.time_interval_overlap()));
+  size_t num_intervals =
+      static_cast<size_t>(std::max(std::round(num_intervals_float), 1.0f));
+
+  std::deque<std::vector<Vector3d>> time_interval_based_fitted_points;
+  std::vector<double> xs;
+  std::vector<double> ys;
+  std::vector<double> zs;
+  std::vector<double> fitted_xs;
+  std::vector<double> fitted_ys;
+  std::vector<double> fitted_zs;
+  bool first_interval = false;
+  bool last_interval = false;
+
+  for (size_t interval = 0; interval < num_intervals; ++interval) {
+    xs.clear();
+    ys.clear();
+    zs.clear();
+    fitted_xs.clear();
+    fitted_ys.clear();
+    fitted_zs.clear();
+    first_interval = false;
+    last_interval = false;
+
+    if (interval == 0) {
+      first_interval = true;
+    }
+    if (interval == num_intervals - 1) {
+      last_interval = true;
+    }
+
+    size_t start_indx = interval * (options_.time_interval_size() -
+                                    options_.time_interval_overlap());
+    size_t end_indx =
+        std::min(start_indx + options_.time_interval_size(), num_timestamps);
+
+    // If last interval then make `end_indx` `num_timestamps`.
+    // If `num_intervals_float` is round to upper integer than we fit linear
+    // curve to avoid overfitting. E.g. if `num_intervals_float` is 3.7
+    // it will be rounded to 4, in this case we do linear fitting.
+    // If `num_intervals_float` is 4.4 it will be rounded to 4, in this case
+    // we use the curve degree by the config as in this case the timestamp
+    // interval size is bigger and has more data.
+    int degree_to_use = options_.fitted_curve_degree();
+
+    for (size_t i = start_indx; i < end_indx; ++i) {
+      for (const HitResult& point : std::get<1>(guideline_point_cloud_.at(i))) {
+        xs.push_back(point.hit_pose.p().x());
+        ys.push_back(point.hit_pose.p().y());
+        zs.push_back(point.hit_pose.p().z());
+      }
+    }
+    auto exogeneous_axis = Axis3::kX;
+    double dx = util::StandardDeviation(xs);
+    double dy = util::StandardDeviation(ys);
+    double dz = util::StandardDeviation(zs);
+
+    // Using `>=` to avoid the situation where `dx=dy=dz`.
+    if (dx >= dy && dx >= dz) {
+      exogeneous_axis = Axis3::kX;
+      auto fitted_values =
+          FitCurve(xs, ys, zs, degree_to_use, first_interval, last_interval);
+      CHECK_OK(fitted_values);
+      fitted_xs = fitted_values->independent_variable_values;
+      fitted_ys = fitted_values->dependent_variable1_values;
+      fitted_zs = fitted_values->dependent_variable2_values;
+    } else if (dy >= dx && dy >= dz) {
+      exogeneous_axis = Axis3::kY;
+      auto fitted_values =
+          FitCurve(ys, xs, zs, degree_to_use, first_interval, last_interval);
+      CHECK_OK(fitted_values);
+      fitted_ys = fitted_values->independent_variable_values;
+      fitted_xs = fitted_values->dependent_variable1_values;
+      fitted_zs = fitted_values->dependent_variable2_values;
+    } else if (dz >= dx && dz >= dy) {
+      exogeneous_axis = Axis3::kZ;
+      auto fitted_values =
+          FitCurve(zs, xs, ys, degree_to_use, first_interval, last_interval);
+      CHECK_OK(fitted_values);
+      fitted_zs = fitted_values->independent_variable_values;
+      fitted_xs = fitted_values->dependent_variable1_values;
+      fitted_ys = fitted_values->dependent_variable2_values;
+    }
+    if (vertical_axis_.has_value() &&
+        vertical_axis_.value() == exogeneous_axis) {
+      LOG_EVERY_N_SEC(WARNING, kLogSeconds)
+          << "Exogeneous axis" << " == vertical_axis:";
+    }
+    std::vector<Vector3d> fitted_points;
+    fitted_points.reserve(fitted_xs.size());
+    for (size_t i = 0; i < fitted_xs.size(); ++i) {
+      fitted_points.push_back(
+          Vector3d(fitted_xs.at(i), fitted_ys.at(i), fitted_zs.at(i)));
+    }
+    time_interval_based_fitted_points.push_back(fitted_points);
+  }
+  return time_interval_based_fitted_points;
 }
 
 absl::Status
 LocalTemporalRegressionBasedGuidelineAggregator::ComputeGuideline() {
   // Piecewise curve approximation.
-  const std::deque<std::vector<Vector3d>>& time_interval_based_fitted_points =
+  const std::deque<std::vector<Vector3d>> time_interval_based_fitted_points =
       TemporalLocalFittingWithExogeneousVariableSelection();
   if (time_interval_based_fitted_points.empty()) {
     return absl::FailedPreconditionError(
@@ -658,7 +656,7 @@ LocalTemporalRegressionBasedGuidelineAggregator::ComputeGuideline() {
     stitch_point_index_control_points = -1;
     all_points_stitched = true;
     for (int j = 0; j < fit_result.size(); ++j) {
-      Vector3d point = fit_result[j];
+      const Vector3d& point = fit_result[j];
       auto closest_control_point =
           FindClosestPoint(control_points, last_merged_indx, point);
       if (closest_control_point.second <
