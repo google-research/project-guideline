@@ -14,17 +14,12 @@
 
 load("//tools/build_defs/proto/cpp:cc_proto_library.bzl", "cc_proto_library")
 
-package(
-    default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//:internal",
-    ],
-)
+package(default_applicable_licenses = ["//:license"])
 
 cc_library(
     name = "depth_alignment_calculator",
     srcs = ["depth_alignment_calculator.cc"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
         ":depth_alignment_calculator_options_cc_proto",
         "//project_guideline/camera:cv_camera_model",
@@ -75,21 +70,19 @@ cc_test(
 proto_library(
     name = "depth_alignment_calculator_options_proto",
     srcs = ["depth_alignment_calculator_options.proto"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
 )
 
 cc_proto_library(
     name = "depth_alignment_calculator_options_cc_proto",
-    visibility = [
-        "//visibility:public",
-    ],
+    visibility = ["//visibility:private"],
     deps = [":depth_alignment_calculator_options_proto"],
 )
 
 cc_library(
     name = "image_segmentation_calculator",
     srcs = ["image_segmentation_calculator.cc"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
         ":image_segmentation_calculator_options_cc_proto",
         "//project_guideline/util:status",
@@ -133,21 +126,19 @@ cc_test(
 proto_library(
     name = "image_segmentation_calculator_options_proto",
     srcs = ["image_segmentation_calculator_options.proto"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
 )
 
 cc_proto_library(
     name = "image_segmentation_calculator_options_cc_proto",
-    visibility = [
-        "//visibility:public",
-    ],
+    visibility = ["//visibility:private"],
     deps = [":image_segmentation_calculator_options_proto"],
 )
 
 cc_library(
     name = "occupancy_map_calculator",
     srcs = ["occupancy_map_calculator.cc"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
     deps = [
         ":occupancy_map_calculator_options_cc_proto",
         "//project_guideline/camera:cv_camera_model",
@@ -234,13 +225,11 @@ cc_test(
 proto_library(
     name = "occupancy_map_calculator_options_proto",
     srcs = ["occupancy_map_calculator_options.proto"],
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
 )
 
 cc_proto_library(
     name = "occupancy_map_calculator_options_cc_proto",
-    visibility = [
-        "//visibility:public",
-    ],
+    visibility = ["//visibility:private"],
     deps = [":occupancy_map_calculator_options_proto"],
 )
