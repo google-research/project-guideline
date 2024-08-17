@@ -47,10 +47,7 @@ cc_library(
 cc_library(
     name = "predicates",
     hdrs = ["predicates.h"],
-    visibility = [
-        "//visibility:public",
-        "//vr/perception/depth/algorithms/calibration:__subpackages__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         "//project_guideline/util:transformation",
         "@com_google_googletest//:gtest",
