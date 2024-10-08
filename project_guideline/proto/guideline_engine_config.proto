@@ -18,7 +18,6 @@ package guideline;
 
 import "google/protobuf/duration.proto";
 
-// option cc_api_version = 2;
 // option java_api_version = 2;
 option java_multiple_files = true;
 option java_package = "com.google.research.guideline.proto";
@@ -70,6 +69,7 @@ message KeypointExtractorOptions {
 
 message HorizontalBlockKeypointExtractorOptions {
   optional int32 block_size = 1 [default = 4];
+
   optional int32 block_overlap = 2 [default = 2];
 }
 
@@ -94,12 +94,18 @@ message LegacySoundPackOptions {
     V4_1 = 2;
     V4_2 = 3;
   }
+
   optional LegacySoundPackType type = 1;
   optional float max_rotation_degrees = 2 [default = 45];
+
   optional float sensitivity_curvature = 3 [default = 0.4];
+
   optional float warning_threshold_meters = 4 [default = 1.5];
+
   optional bool enable_curve_sound = 5 [default = false];
+
   optional bool use_fast_curve_sound = 6 [default = false];
+
   optional float turn_sensitivity = 7 [default = 0.4];
 }
 
@@ -117,6 +123,7 @@ message OccupancyMapOptions {
 
 message FrameBasedOccupancyMapOptions {
   optional float occupancy_threshold = 1 [default = 5];
+
   optional ClearanceZoneOptions clearance_zone_options = 2;
   optional float point_confidence_threshold = 3 [default = 0.1];
 }
@@ -124,10 +131,13 @@ message FrameBasedOccupancyMapOptions {
 message ClearanceZoneOptions {
   // The width of the clearance zone (meters).
   optional int32 width = 1 [default = 4];
+
   // The depth of the clearance zone (meters).
   optional int32 depth = 2 [default = 5];
+
   // The bottom of the clearance zone relative to the camera position (meters).
   optional float bottom = 3 [default = -0.5];
+
   // The top of the clearance zone relative to the camera position (meters).
   optional float top = 4 [default = 1.2];
 }
@@ -138,6 +148,7 @@ message HumanRepresentationOptions {
 
 message CameraPoseBasedHumanOptions {
   optional int32 max_history_to_keep = 1 [default = 300];
+
   optional google.protobuf.Duration velocity_window = 2;
 }
 
@@ -156,35 +167,50 @@ message GuidelineAggregatorOptions {
 message SortedGuidelineBoxPointAggregatorOptions {
   // GuidelineBoxPoint size.
   optional float box_size_meters = 1 [default = 1];
+
   // confidence and number of points thresholds for selecting points for
   // spline fitting.
   optional float confidence_threshold = 2 [default = 0.5];
+
   optional float num_points_threshold = 3 [default = 3];
+
   // How many meters a single spline fit.
   optional float num_meters_per_spline = 4 [default = 2];
+
   // How many meters to forward and backward extrapolate the fitted spline.
   optional float forward_extrapolation_meters = 5 [default = 5];
+
   optional float backward_extrapolation_meters = 6 [default = 5];
+
   // Number of guideline points to fit for every meter. Total number of points
   // returned will distance covered by guideline, including forward and
   // backward extrapolation, multiplied by this value.
   optional float num_guideline_points_per_meter = 7 [default = 1];
+
   optional int32 max_history_to_keep = 8 [default = 150];
 }
 
 message LocalTemporalRegressionBasedGuidelineAggregatorOptions {
   optional int32 time_interval_size = 1 [default = 60];
+
   optional int32 time_interval_overlap = 2 [default = 15];
+
   optional int32 fitted_curve_degree = 3 [default = 2];
+
   optional float max_distance_for_closest_point_meters = 4 [default = 2];
+
   // How many meters to forward and backward extrapolate the fitted spline.
   optional float forward_extrapolation_meters = 5 [default = 5];
+
   optional float backward_extrapolation_meters = 6 [default = 5];
+
   // Number of guideline points to fit for every meter. Total number of points
   // returned will distance covered by guideline, including forward and
   // backward extrapolation, multiplied by this value.
   optional float num_guideline_points_per_meter = 7 [default = 1];
+
   optional int32 max_history_to_keep = 8 [default = 150];
+
   optional bool use_fitted_curve_for_extrapolation = 9 [default = true];
 }
 
@@ -197,27 +223,43 @@ message ControlSystemOptions {
 message SimpleControlSystemOptions {
   // For computing the raw control signal.
   optional int32 num_guideline_points_per_meter = 1 [default = 1];
+
   optional float intermediate_guideline_point_distance_meters = 2 [default = 6];
+
   optional float distance_per_guideline_segment_meters = 3 [default = 3];
+
   optional int32 max_num_guideline_segments_to_use = 4 [default = 5];
+
   optional float turn_angle_threshold_degrees = 5 [default = 15];
+
   optional int32 lateral_stop_min_consecutive_frames = 6 [default = 20];
+
   optional float lateral_movement_abs_min_threshold_meters = 7 [default = 0];
+
   optional float lateral_movement_abs_max_threshold_meters = 8 [default = 2];
+
   optional float rotational_movement_abs_min_threshold_degrees = 9
       [default = 0];
+
   optional float rotational_movement_abs_max_threshold_degrees = 10
       [default = 90];
+
   optional float rotational_movement_ahead_meters = 16 [default = 3];
+
   optional int32 max_history_to_keep = 11 [default = 300];
+
   optional float min_turn_point_distance_meters = 12 [default = 2];
+
   optional float track_width_meters = 13 [default = 3];
+
   optional uint32 obstacle_smoothing_min_interval_frames = 14 [default = 15];
+
   optional uint32 obstacle_smoothing_window_frames = 15 [default = 30];
 }
 
 message GuidanceSystemOptions {
   optional google.protobuf.Duration eager_stop_threshold = 1;
+
   // For enabling obstacle detection. When enabled, guideline system computes
   // point cloud and occupancy map from the depth map, also enables STOP signal
   // in case of obstacles within certain region.
