@@ -17,6 +17,6 @@
 GUIDELINE_DEFAULT_MANIFEST_VALUES = {
     "applicationId": "com.google.research.guideline",
     "minSdkVersion": "30",
-    "targetSdkVersion": "33",
+    "targetSdkVersion": "35",
     "versionName": "1.0.test",
 }

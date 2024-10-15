@@ -22,7 +22,7 @@
     android:versionCode="${versionCode}"
     android:versionName="${versionName}">
 
-  <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="33" />
+  <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="35" />
 
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.WAKE_LOCK" />
