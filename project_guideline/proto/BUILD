@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//third_party/protobuf/bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
+load("//third_party/protobuf/bazel:proto_library.bzl", "proto_library")
+
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [

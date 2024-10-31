@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//third_party/protobuf/bazel:proto_library.bzl", "proto_library")
 load("//tools/build_defs/proto/cpp:cc_proto_library.bzl", "cc_proto_library")
 
 package(default_applicable_licenses = ["//:license"])
