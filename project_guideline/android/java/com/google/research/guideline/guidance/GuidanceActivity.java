@@ -19,6 +19,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.research.guideline.engine.NativeEngineFragment;
 import com.google.research.guideline.util.permissions.RequiredPermissionsHelper;
+import com.google.research.guideline.util.ui.ImmersiveModeController;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -28,11 +29,13 @@ import javax.inject.Inject;
 public final class GuidanceActivity extends Hilt_GuidanceActivity {
   private static final String[] REQUIRED_PERMISSIONS = {Manifest.permission.CAMERA};
 
+  @Inject ImmersiveModeController immersiveModeController;
   @Inject RequiredPermissionsHelper permissionsHelper;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    immersiveModeController.enableImmersiveMode();
     permissionsHelper.checkRequiredPermissions(this, REQUIRED_PERMISSIONS, this::createFragment);
   }
 

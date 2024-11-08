@@ -14,26 +14,22 @@
 
 load("@build_bazel_rules_android//android:rules.bzl", "android_library")
 
-package(
-    default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//:internal",
-    ],
-)
+package(default_applicable_licenses = ["//:license"])
 
 android_library(
-    name = "guidance",
+    name = "ui",
     srcs = glob(["*.java"]),
-    exports_manifest = 1,
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
+    visibility = [
+        "//visibility:public",
+    ],
     deps = [
-        "//project_guideline/android/java/com/google/research/guideline/engine",
-        "//project_guideline/android/java/com/google/research/guideline/util/permissions",
-        "//project_guideline/android/java/com/google/research/guideline/util/ui",
-        "//third_party/hilt:android_entry_point",
+        "//:dagger-android",
+        "//third_party/hilt:scopes",
+        "@maven//:androidx_activity_activity",
         "@maven//:androidx_appcompat_appcompat",
-        "@maven//:com_google_code_findbugs_jsr305",
-        "@maven//:javax_inject_javax_inject",
+        "@maven//:androidx_core_core",
+        "@maven//:androidx_preference_preference",
     ],
 )

@@ -16,10 +16,7 @@
 
 -->
 
-<resources>
-  <style name="Theme.Guidance" parent="@style/Theme.AppCompat.NoActionBar">
-    <item name="android:windowContentOverlay">@null</item>
-    <item name="android:windowBackground">@android:color/black</item>
-    <item name="android:colorBackground">@android:color/black</item>
-  </style>
-</resources>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.google.research.guideline.util.ui">
+  <uses-sdk android:minSdkVersion="30" />
+</manifest>
