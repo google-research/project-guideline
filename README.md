@@ -171,7 +171,7 @@ These build instructions have been tested on Ubuntu 22.04 (amd64).
 4. Install to device:
 
    ```shell
-    $ abd install -r bazel-bin/project_guideline/android/guideline_app.apk
+    $ adb install -r bazel-bin/project_guideline/android/guideline_app.apk
    ```
 
    If using docker, the bazel-bin location is symlinked so it is recommended to
