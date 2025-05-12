@@ -168,6 +168,7 @@ cc_test(
         ":image_yuv_conversion",
         "//project_guideline/testing:status_matchers",
         "@com_google_googletest//:gtest_main",
+        "@mediapipe//mediapipe/framework/port:opencv_core",
     ],
 )
 

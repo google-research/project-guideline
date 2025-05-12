@@ -14,12 +14,11 @@
 
 #include "project_guideline/util/image_yuv_conversion.h"
 
-#include <numeric>
 #include <string>
-#include <vector>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include <opencv2/core.hpp>
+#include <opencv2/core/hal/interface.h>
 #include "project_guideline/testing/status_matchers.h"
 #include "project_guideline/util/file.h"
 #include "project_guideline/util/image.h"
@@ -54,9 +53,10 @@ std::string GetTestDataPath(const std::string& filename) {
 // equivalent.
 bool ImagesAlmostEqual(const Image& a, const Image& b, double tolerance = 1.5) {
   cv::Mat diff = cv::abs(a.data() - b.data());
-  double avg_value_diff =
-      1.0 * std::accumulate(diff.begin<uint8_t>(), diff.end<uint8_t>(), 0) /
-      diff.total();
+  diff = diff.reshape(/*cn=*/1, /*rows=*/1);
+  cv::Mat1d diff_avg;
+  cv::reduce(diff, diff_avg, /*dim=*/0, cv::REDUCE_AVG, CV_64F);
+  double avg_value_diff = diff_avg(0, 0);
   return avg_value_diff < tolerance;
 }
 
