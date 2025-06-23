@@ -20,6 +20,49 @@ package(
 )
 
 cc_library(
+    name = "averaging_filter",
+    hdrs = ["averaging_filter.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_test(
+    name = "averaging_filter_test",
+    srcs = ["averaging_filter_test.cc"],
+    deps = [
+        ":averaging_filter",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "biquad_filter",
+    srcs = ["biquad_filter.cc"],
+    hdrs = ["biquad_filter.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/time",
+        "@eigen_archive//:eigen3",
+    ],
+)
+
+cc_test(
+    name = "biquad_filter_test",
+    srcs = ["biquad_filter_test.cc"],
+    deps = [
+        ":biquad_filter",
+        "@com_google_absl//absl/random",
+        "@com_google_absl//absl/random:distributions",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "clock",
     srcs = ["clock.cc"],
     hdrs = ["clock.h"],
