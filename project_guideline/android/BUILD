@@ -13,9 +13,22 @@
 # limitations under the License.
 
 load("@build_bazel_rules_android//android:rules.bzl", "android_binary")
+load("//third_party/bazel_skylib/rules:common_settings.bzl", "bool_flag")
 
 package(
     default_applicable_licenses = ["//:license"],
+)
+
+bool_flag(
+    name = "guideline_classic_mode",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "use_guideline_classic_mode",
+    flag_values = {
+        ":guideline_classic_mode": "True",
+    },
 )
 
 android_binary(

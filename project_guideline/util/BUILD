@@ -160,6 +160,41 @@ cc_test(
 )
 
 cc_library(
+    name = "hough_transform",
+    srcs = ["hough_transform.cc"],
+    hdrs = ["hough_transform.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":lerp",
+        "@com_google_absl//absl/log",
+        "@eigen_archive//:eigen3",
+        "@mediapipe//mediapipe/framework/port:opencv_core",
+    ],
+)
+
+cc_test(
+    name = "hough_transform_test",
+    srcs = ["hough_transform_test.cc"],
+    data = [
+        "//project_guideline/vision/testdata:images",
+    ],
+    deps = [
+        ":hough_transform",
+        ":image",
+        ":image_io",
+        ":status",
+        "//project_guideline/testing:predicates",
+        "//project_guideline/testing:status_matchers",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/log",
+        "@com_google_googletest//:gtest_main",
+        "@eigen_archive//:eigen3",
+        "@mediapipe//mediapipe/framework/port:opencv_core",
+        "@mediapipe//mediapipe/framework/port:opencv_imgproc",
+    ],
+)
+
+cc_library(
     name = "image",
     srcs = ["image.cc"],
     hdrs = ["image.h"],

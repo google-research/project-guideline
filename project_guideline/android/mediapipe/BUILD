@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@build_bazel_rules_android//android:rules.bzl", "android_library")
-
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
@@ -21,19 +19,22 @@ package(
     ],
 )
 
-android_library(
-    name = "guidance",
-    srcs = glob(["*.java"]),
-    exports_manifest = 1,
-    manifest = "AndroidManifest.xml",
-    resource_files = glob(["res/**"]),
+cc_binary(
+    name = "libmediapipe_jni.so",
+    linkshared = 1,
+    linkstatic = 1,
     deps = [
-        "//project_guideline/android/java/com/google/research/guideline/inject",
-        "//project_guideline/android/java/com/google/research/guideline/util/permissions",
-        "//project_guideline/android/java/com/google/research/guideline/util/ui",
-        "//third_party/hilt:android_entry_point",
-        "@maven//:androidx_appcompat_appcompat",
-        "@maven//:com_google_code_findbugs_jsr305",
-        "@maven//:javax_inject_javax_inject",
+        "//project_guideline/android/mediapipe/graphs:mobile_calculators",
+        "@mediapipe//mediapipe/java/com/google/mediapipe/framework/jni:mediapipe_framework_jni",
     ],
+)
+
+# Converts the .so cc_binary into a cc_library, to be consumed in an android_binary.
+cc_library(
+    name = "mediapipe_jni_lib",
+    srcs = [":libmediapipe_jni.so"],
+    target_compatible_with = [
+        "@platforms//os:android",
+    ],
+    alwayslink = 1,
 )

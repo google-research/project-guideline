@@ -16,13 +16,15 @@ package com.google.research.guideline.guidance;
 
 import android.Manifest;
 import android.os.Bundle;
+import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.research.guideline.engine.NativeEngineFragment;
+import com.google.research.guideline.inject.Qualifiers.GuidanceFragment;
 import com.google.research.guideline.util.permissions.RequiredPermissionsHelper;
 import com.google.research.guideline.util.ui.ImmersiveModeController;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 /** Main Guideline activity. */
 @AndroidEntryPoint(AppCompatActivity.class)
@@ -31,6 +33,7 @@ public final class GuidanceActivity extends Hilt_GuidanceActivity {
 
   @Inject ImmersiveModeController immersiveModeController;
   @Inject RequiredPermissionsHelper permissionsHelper;
+  @Inject @GuidanceFragment Provider<Fragment> guidanceFragmentProvider;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,7 +45,7 @@ public final class GuidanceActivity extends Hilt_GuidanceActivity {
   private void createFragment() {
     getSupportFragmentManager()
         .beginTransaction()
-        .replace(android.R.id.content, new NativeEngineFragment())
+        .replace(android.R.id.content, guidanceFragmentProvider.get())
         .commitNow();
   }
 
