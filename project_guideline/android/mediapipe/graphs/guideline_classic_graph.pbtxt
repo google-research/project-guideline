@@ -1,0 +1,116 @@
+# proto-file: third_party/mediapipe/framework/calculator.proto
+# proto-message: CalculatorGraphConfig
+
+input_stream: "input_video"
+input_stream: "enable_debug_overlay"
+output_stream: "output_video"
+output_stream: "line_detection"
+
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+node {
+  calculator: "ToImageCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  output_stream: "IMAGE:multi_backend_image"
+}
+
+node: {
+  calculator: "ImageToTensorCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  output_stream: "TENSORS:image_tensors"
+  output_stream: "LETTERBOX_PADDING:letterbox_padding"
+  options: {
+    [drishti.ImageToTensorCalculatorOptions.ext] {
+      keep_aspect_ratio: false
+      output_tensor_float_range {
+        min: 0
+        max: 255
+      }
+      output_tensor_width: 513
+      output_tensor_height: 513
+      gpu_origin: TOP_LEFT
+    }
+  }
+}
+
+node {
+  calculator: "InferenceCalculator"
+  input_stream: "TENSORS:image_tensors"
+  output_stream: "TENSORS:line_mask_tensors"
+  options {
+    [drishti.InferenceCalculatorOptions.ext] {
+      model_path: "guideline_f32input_singlechannel.tflite"
+      delegate {
+        nnapi {
+          accelerator_name: "google-edgetpu"
+        }
+      }
+    }
+  }
+}
+
+node {
+  calculator: "guideline::LineMaskTensorsToLineCalculator"
+  input_stream: "LINE_MASK_TENSORS:line_mask_tensors"
+  input_stream: "IMAGE:multi_backend_image"
+  input_stream: "LETTERBOX_PADDING:letterbox_padding"
+  output_stream: "LINE_DETECTION:line_detection"
+}
+
+node {
+  calculator: "guideline::ClassicGuidanceCalculator"
+  input_stream: "LINE_DETECTION:line_detection"
+  output_stream: "GUIDANCE:guidance"
+}
+
+node {
+  calculator: "GateCalculator"
+  input_stream: "ALLOW:enable_debug_overlay"
+  input_stream: "line_mask_tensors"
+  input_stream: "guidance"
+  output_stream: "line_mask_tensors_debug"
+  output_stream: "guidance_debug"
+}
+
+node {
+  calculator: "guideline.ClassicRenderDataCalculator"
+  input_stream: "GUIDANCE:guidance_debug"
+  output_stream: "RENDER_DATA:render_data_debug"
+}
+
+node: {
+  calculator: "guideline::MaskOverlayCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  input_stream: "MASK_TENSORS:line_mask_tensors_debug"
+  output_stream: "IMAGE_GPU:video_with_mask_debug"
+}
+
+node {
+  calculator: "AnnotationOverlayCalculator"
+  input_stream: "IMAGE_GPU:video_with_mask_debug"
+  input_stream: "render_data_debug"
+  output_stream: "IMAGE_GPU:output_video_debug"
+}
+
+node {
+  calculator: "BoolToIntCalculator"
+  input_stream: "enable_debug_overlay"
+  output_stream: "enable_debug_overlay_int"
+}
+
+node {
+  calculator: "MuxCalculator"
+  input_stream: "SELECT:enable_debug_overlay_int"
+  input_stream: "INPUT:0:throttled_input_video"
+  input_stream: "INPUT:1:output_video_debug"
+  output_stream: "OUTPUT:output_video"
+}

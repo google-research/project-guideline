@@ -17,12 +17,6 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.research.guideline.engine">
+    package="com.google.research.guideline.classic">
   <uses-sdk android:minSdkVersion="30" />
-
-  <uses-feature android:name="android.hardware.camera.ar" />
-
-  <application>
-    <meta-data android:name="com.google.ar.core" android:value="required" />
-  </application>
 </manifest>

@@ -24,6 +24,7 @@ package(
 exports_files([
     "depth.tflite",
     "guideline.tflite",
+    "guideline_f32input_singlechannel.tflite",
 ])
 
 gl_cc_embed_data(
