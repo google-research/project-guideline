@@ -129,7 +129,7 @@ absl::Status SortedGuidelineBoxPointAggregator::ComputeGuideline() {
   std::vector<Vector3d> points;
   std::vector<float> distances;
   {
-    absl::MutexLock lock(&sorted_box_points_lock_);
+    absl::MutexLock lock(sorted_box_points_lock_);
     if (sorted_box_points_.size() < 2) {
       LOG_EVERY_N_SEC(WARNING, kLogSeconds)
           << "SortedGuidelineBoxPointAggregator::ComputeGuideline: Not enough "
@@ -249,7 +249,7 @@ absl::Status SortedGuidelineBoxPointAggregator::ComputeGuideline() {
   }
 
   {
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     guideline_points_ = new_guideline_points;
   }
   return absl::OkStatus();
@@ -270,7 +270,7 @@ void SortedGuidelineBoxPointAggregator::AggregateKeypoints(
   }
 
   {
-    absl::MutexLock lock(&sorted_box_points_lock_);
+    absl::MutexLock lock(sorted_box_points_lock_);
     if (sorted_box_points_.empty()) {
       // Create anchor point.
       sorted_box_points_.push_back(GuidelineBoxPoint(
@@ -342,7 +342,7 @@ SortedGuidelineBoxPointAggregator::GetSortedBoxPoints() const {
 absl::StatusOr<std::vector<Vector3d>>
 SortedGuidelineBoxPointAggregator::GetGuideline() {
   {
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     if (guideline_points_.empty()) {
       return absl::FailedPreconditionError(
           "SortedGuidelineBoxPointAggregator::GetGuideline: Not guideline "
@@ -356,14 +356,14 @@ SortedGuidelineBoxPointAggregator::GetGuideline() {
 absl::Status SortedGuidelineBoxPointAggregator::ClearEntries(
     std::optional<size_t> num_entries) {
   {
-    absl::MutexLock lock(&sorted_box_points_lock_);
+    absl::MutexLock lock(sorted_box_points_lock_);
     if (!num_entries.has_value()) {
       while (!timestamps_.empty()) {
         timestamps_.pop();
       }
       sorted_box_points_.clear();
 
-      absl::MutexLock lock(&guideline_points_lock_);
+      absl::MutexLock lock(guideline_points_lock_);
       guideline_points_.clear();
 
       return absl::OkStatus();
@@ -409,7 +409,7 @@ absl::Status SortedGuidelineBoxPointAggregator::ClearEntries(
 
   if (!ComputeGuideline().ok()) {
     // Clear existing guideline as it function of the cleared entries.
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     guideline_points_.clear();
   }
 
@@ -522,7 +522,7 @@ std::deque<std::vector<Vector3d>>
 LocalTemporalRegressionBasedGuidelineAggregator::
     TemporalLocalFittingWithExogeneousVariableSelection() {
   {
-    absl::MutexLock lock(&guideline_point_cloud_lock_);
+    absl::MutexLock lock(guideline_point_cloud_lock_);
     size_t num_timestamps = guideline_point_cloud_.size();
     if (num_timestamps == 0) {
       return std::deque<std::vector<Vector3d>>{};
@@ -699,7 +699,7 @@ LocalTemporalRegressionBasedGuidelineAggregator::ComputeGuideline() {
 
   // Spline fitting equivalent.
   if (control_points.size() < 2) {
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     guideline_points_ = control_points;
     return absl::OkStatus();
   }
@@ -783,7 +783,7 @@ LocalTemporalRegressionBasedGuidelineAggregator::ComputeGuideline() {
     distance += distance_increment;
   }
 
-  absl::MutexLock lock(&guideline_points_lock_);
+  absl::MutexLock lock(guideline_points_lock_);
   guideline_points_ = fitted_points;
   return absl::OkStatus();
 }
@@ -791,7 +791,7 @@ LocalTemporalRegressionBasedGuidelineAggregator::ComputeGuideline() {
 absl::Status LocalTemporalRegressionBasedGuidelineAggregator::ClearEntries(
     std::optional<size_t> num_entries) {
   {
-    absl::MutexLock lock(&guideline_point_cloud_lock_);
+    absl::MutexLock lock(guideline_point_cloud_lock_);
     size_t num_entries_value;
     if (num_entries.has_value()) {
       num_entries_value = num_entries.value();
@@ -813,7 +813,7 @@ absl::Status LocalTemporalRegressionBasedGuidelineAggregator::ClearEntries(
 
   if (!ComputeGuideline().ok()) {
     // Clear existing guideline as it function of the cleared entries.
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     guideline_points_.clear();
   }
 
@@ -833,7 +833,7 @@ void LocalTemporalRegressionBasedGuidelineAggregator::AggregateKeypoints(
   }
   bool clear_history = false;
   {
-    absl::MutexLock lock(&guideline_point_cloud_lock_);
+    absl::MutexLock lock(guideline_point_cloud_lock_);
     if (guideline_point_cloud_.size() >= options_.max_history_to_keep()) {
       clear_history = true;
     }
@@ -844,7 +844,7 @@ void LocalTemporalRegressionBasedGuidelineAggregator::AggregateKeypoints(
   }
 
   {
-    absl::MutexLock lock(&guideline_point_cloud_lock_);
+    absl::MutexLock lock(guideline_point_cloud_lock_);
     std::vector<HitResult> new_hit_results;
     for (const auto& hit_result : hit_results) {
       new_hit_results.push_back(hit_result);
@@ -859,7 +859,7 @@ void LocalTemporalRegressionBasedGuidelineAggregator::AggregateKeypoints(
 absl::StatusOr<std::vector<Vector3d>>
 LocalTemporalRegressionBasedGuidelineAggregator::GetGuideline() {
   {
-    absl::MutexLock lock(&guideline_points_lock_);
+    absl::MutexLock lock(guideline_points_lock_);
     if (guideline_points_.empty()) {
       return absl::FailedPreconditionError(
           "LocalTemporalRegressionBasedGuidelineAggregator::GetGuideline: No "

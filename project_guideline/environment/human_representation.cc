@@ -55,13 +55,13 @@ absl::StatusOr<std::unique_ptr<Object>> CameraPoseBasedHuman::Create(
 }
 
 size_t CameraPoseBasedHuman::NumEntries() const {
-  absl::MutexLock lock(&trajectory_lock_);
+  absl::MutexLock lock(trajectory_lock_);
   return trajectory_.size();
 }
 
 absl::Status CameraPoseBasedHuman::ClearEntries(
     std::optional<size_t> num_entries) {
-  absl::MutexLock lock(&trajectory_lock_);
+  absl::MutexLock lock(trajectory_lock_);
   size_t num_entries_value;
   if (num_entries.has_value()) {
     num_entries_value = num_entries.value();
@@ -83,7 +83,7 @@ absl::Status CameraPoseBasedHuman::ClearEntries(
 
 void CameraPoseBasedHuman::UpdatePositionAndDirection(
     const Transformation& transformation, int64_t timestamp_us) {
-  absl::MutexLock lock(&trajectory_lock_);
+  absl::MutexLock lock(trajectory_lock_);
   if (trajectory_.size() >= options_.max_history_to_keep()) {
     trajectory_.pop_front();
   }
@@ -92,7 +92,7 @@ void CameraPoseBasedHuman::UpdatePositionAndDirection(
 
 absl::StatusOr<Transformation>
 CameraPoseBasedHuman::CurrentPositionAndDirection() const {
-  absl::MutexLock lock(&trajectory_lock_);
+  absl::MutexLock lock(trajectory_lock_);
   if (trajectory_.empty()) {
     return absl::NotFoundError(
         "CameraPoseBasedHuman::CurrentPositionAndDirection: Trajectory is "
@@ -108,7 +108,7 @@ absl::StatusOr<float> CameraPoseBasedHuman::CurrentSpeed() const {
 }
 
 absl::StatusOr<Vector3d> CameraPoseBasedHuman::VelocityVector() const {
-  absl::MutexLock lock(&trajectory_lock_);
+  absl::MutexLock lock(trajectory_lock_);
   if (trajectory_.empty()) {
     return absl::NotFoundError("Trajectory is empty");
   }

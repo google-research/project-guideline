@@ -149,11 +149,11 @@ void GuidanceSystem::OnCameraPose(const int64_t timestamp_us,
                                   const Transformation& world_t_camera,
                                   std::shared_ptr<CameraModel> camera_model) {
   {
-    absl::MutexLock lock(&camera_model_mutex_);
+    absl::MutexLock lock(camera_model_mutex_);
     camera_model_ = camera_model;
   }
   {
-    absl::MutexLock lock(&pending_camera_poses_mutex_);
+    absl::MutexLock lock(pending_camera_poses_mutex_);
     pending_detection_poses_.emplace_back(timestamp_us, world_t_camera);
     pending_feature_poses_.emplace_back(timestamp_us, world_t_camera);
     // Human stateful representation is updated with latest camera pose.
@@ -224,7 +224,7 @@ void GuidanceSystem::OnCameraPose(const int64_t timestamp_us,
       world_t_camera, velocity.ok() ? velocity.value() : Vector3d(0, 0, 0),
       guideline_points, obstacles, kAxisGravity);
   {
-    absl::MutexLock lock(&control_signal_callbacks_mutex_);
+    absl::MutexLock lock(control_signal_callbacks_mutex_);
     for (const auto& callback : control_signal_callbacks_) {
       callback(control_signal);
     }
@@ -269,7 +269,7 @@ void GuidanceSystem::OnTrackingFeatures(
     const int64_t timestamp_us, const std::vector<TrackingFeature>& features) {
   Transformation world_t_camera;
   {
-    absl::MutexLock lock(&pending_camera_poses_mutex_);
+    absl::MutexLock lock(pending_camera_poses_mutex_);
     if (!DequeCameraPose(pending_feature_poses_, timestamp_us,
                          world_t_camera)) {
       LOG(WARNING) << "Failed to find camera pose for tracking features "
@@ -299,7 +299,7 @@ void GuidanceSystem::OnDetection(
   Transformation world_t_camera;
   PendingFeatures features;
   {
-    absl::MutexLock lock(&pending_camera_poses_mutex_);
+    absl::MutexLock lock(pending_camera_poses_mutex_);
     if (!DequeCameraPose(pending_detection_poses_, timestamp_us,
                          world_t_camera)) {
       LOG(WARNING) << "Failed to find corresponding camera pose "
@@ -448,7 +448,7 @@ void GuidanceSystem::ProcessDepthMap(int64_t timestamp_us,
 
 void GuidanceSystem::ResetAndSendStopSignal(StopReason reason) {
   {
-    absl::MutexLock lock(&pending_camera_poses_mutex_);
+    absl::MutexLock lock(pending_camera_poses_mutex_);
     pending_detection_poses_.clear();
     pending_feature_poses_.clear();
     pending_tracking_features_.clear();
@@ -462,7 +462,7 @@ void GuidanceSystem::ResetAndSendStopSignal(StopReason reason) {
 
   std::vector<ControlSignalCallback> callbacks;
   {
-    absl::MutexLock lock(&control_signal_callbacks_mutex_);
+    absl::MutexLock lock(control_signal_callbacks_mutex_);
     callbacks = control_signal_callbacks_;
   }
   for (const auto& callback : callbacks) {
@@ -480,7 +480,7 @@ void GuidanceSystem::OnArDepth(const int64_t timestamp_us,
   {
     // OnArDepth is called after OnCameraPose, so the last camera pose will
     // still be in the queue even if OnDetection gets called first.
-    absl::MutexLock lock(&pending_camera_poses_mutex_);
+    absl::MutexLock lock(pending_camera_poses_mutex_);
     if (!DequeCameraPose(pending_detection_poses_, timestamp_us,
                          world_t_camera)) {
       LOG(WARNING) << "Failed to find corresponding camera pose for ArDepth "
@@ -495,7 +495,7 @@ void GuidanceSystem::OnArDepth(const int64_t timestamp_us,
 
 void GuidanceSystem::AddControlSignalCallback(
     const ControlSignalCallback& callback) {
-  absl::MutexLock lock(&control_signal_callbacks_mutex_);
+  absl::MutexLock lock(control_signal_callbacks_mutex_);
   control_signal_callbacks_.push_back(callback);
 }
 
@@ -519,7 +519,7 @@ absl::StatusOr<Transformation> GuidanceSystem::CurrentPositionAndDirection() {
 }
 
 std::shared_ptr<camera::CameraModel> GuidanceSystem::GetCameraModel() {
-  absl::MutexLock lock(&camera_model_mutex_);
+  absl::MutexLock lock(camera_model_mutex_);
   std::shared_ptr<camera::CameraModel> camera_model = camera_model_;
   CHECK(camera_model) << "CameraModel not available";
   return camera_model;

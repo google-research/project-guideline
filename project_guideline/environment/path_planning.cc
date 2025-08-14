@@ -158,7 +158,7 @@ ControlSystemOptions SimpleControlSystem::GetConfig() const {
 
 size_t SimpleControlSystem::NumEntries() {
   {
-    absl::MutexLock lock(&control_signal_history_lock_);
+    absl::MutexLock lock(control_signal_history_lock_);
     return control_signal_history_.size();
   }
 }
@@ -166,7 +166,7 @@ size_t SimpleControlSystem::NumEntries() {
 absl::Status SimpleControlSystem::ClearEntries(
     std::optional<size_t> num_entries) {
   {
-    absl::MutexLock lock(&control_signal_history_lock_);
+    absl::MutexLock lock(control_signal_history_lock_);
     if (num_entries.has_value()) {
       size_t num_entries_value = num_entries.value();
       if (control_signal_history_.size() < num_entries_value) {
@@ -332,7 +332,7 @@ TurnPointOutput SimpleControlSystem::FindTurnPoint(
 
 StopReason SimpleControlSystem::IsStopCondition() {
   {
-    absl::MutexLock lock(&control_signal_history_lock_);
+    absl::MutexLock lock(control_signal_history_lock_);
 
     auto current_control_signal = control_signal_history_.back();
     // Out of guideline scenario.
@@ -387,7 +387,7 @@ const ControlSignal SimpleControlSystem::PostProcessControlSignals() {
   }
   ControlSignal updated_control_signal;
   {
-    absl::MutexLock lock(&control_signal_history_lock_);
+    absl::MutexLock lock(control_signal_history_lock_);
     updated_control_signal = control_signal_history_.back();
   }
   float final_lateral_movement_meters =
@@ -497,7 +497,7 @@ ControlSignal SimpleControlSystem::GenerateControlSignal(
       obstacle_latch_.Update(obstacles.empty() ? 0.0f : 1.0f);
 
   {
-    absl::MutexLock lock(&control_signal_history_lock_);
+    absl::MutexLock lock(control_signal_history_lock_);
     if (control_signal_history_.size() >= options_.max_history_to_keep()) {
       control_signal_history_.pop_front();
     }

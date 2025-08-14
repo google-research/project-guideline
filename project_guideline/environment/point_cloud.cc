@@ -39,7 +39,7 @@ std::unique_ptr<PointCloud> PointCloud::Create(
 }
 
 absl::StatusOr<std::vector<Point3D>> PointCloud::GetPointCloud() {
-  absl::MutexLock lock(&point_cloud_lock_);
+  absl::MutexLock lock(point_cloud_lock_);
   if (point_cloud_.empty()) {
     return absl::FailedPreconditionError(
         "PointCloud::GetPointCloud: No point cloud found.");
@@ -58,7 +58,7 @@ void PointCloud::UpdatePointCloud(const util::DepthImage& depth_map,
     return;
   }
 
-  absl::MutexLock lock(&point_cloud_lock_);
+  absl::MutexLock lock(point_cloud_lock_);
   point_cloud_ = std::move(*point_cloud);
 }
 
@@ -72,7 +72,7 @@ void PointCloud::UpdatePointCloud(const util::DepthImageU16& depth,
   if (!point_cloud.ok()) {
     LOG(WARNING) << "Failed to convert depth map to point cloud.";
   }
-  absl::MutexLock lock(&point_cloud_lock_);
+  absl::MutexLock lock(point_cloud_lock_);
   point_cloud_ = std::move(*point_cloud);
 }
 

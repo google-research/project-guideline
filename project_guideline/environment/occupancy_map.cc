@@ -108,12 +108,12 @@ void OccupancyMap::UpdateOccupancyMap(
         << new_occupancy_map.status().message();
     return;
   }
-  absl::MutexLock lock(&occupancy_map_lock_);
+  absl::MutexLock lock(occupancy_map_lock_);
   occupancy_map_ = std::move(*new_occupancy_map);
 }
 
 std::vector<std::pair<Vector2d, int>> OccupancyMap::GetOccupancyMap() {
-  absl::MutexLock lock(&occupancy_map_lock_);
+  absl::MutexLock lock(occupancy_map_lock_);
   return occupancy_map_;
 }
 
