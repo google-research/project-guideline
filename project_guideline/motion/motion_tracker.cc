@@ -25,54 +25,54 @@
 namespace guideline::motion {
 
 std::shared_ptr<camera::CameraModel> MotionTracker::camera_model() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return camera_model_;
 }
 
 void MotionTracker::AddCameraMotionCallback(
     const CameraMotionCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   camera_motion_callbacks_.push_back(callback);
 }
 
 void MotionTracker::AddTrackingStateCallback(
     const TrackingStateCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   tracking_state_callbacks_.push_back(callback);
 }
 
 void MotionTracker::AddDepthMapCallback(const DepthMapCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   depth_map_callbacks_.push_back(callback);
 }
 
 void MotionTracker::AddTrackingFeaturesCallback(
     const TrackingFeaturesCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   tracking_features_callbacks_.push_back(callback);
 }
 
 bool MotionTracker::IsTracking() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return is_tracking_;
 }
 
 std::optional<std::pair<int64_t, util::Transformation>>
 MotionTracker::LastCameraPose() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return last_camera_pose_;
 }
 
 void MotionTracker::UpdateCameraModel(
     std::shared_ptr<camera::CameraModel> camera_model) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   camera_model_ = camera_model;
 }
 
 void MotionTracker::NotifyTracking(bool is_tracking) {
   std::vector<TrackingStateCallback> callbacks;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     is_tracking_ = is_tracking;
     last_camera_pose_ = std::nullopt;
     callbacks = tracking_state_callbacks_;
@@ -88,7 +88,7 @@ void MotionTracker::NotifyCameraMotion(
   std::vector<CameraMotionCallback> callbacks;
   std::shared_ptr<camera::CameraModel> camera_model;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     last_camera_pose_ = std::pair(timestamp_us, world_t_camera);
     callbacks = camera_motion_callbacks_;
     camera_model = camera_model_;
@@ -106,7 +106,7 @@ void MotionTracker::NotifyDepth(int64_t timestamp_us,
                                 const util::ConfidenceImageU8& confidence) {
   std::vector<DepthMapCallback> callbacks;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     callbacks = depth_map_callbacks_;
   }
 
@@ -119,7 +119,7 @@ void MotionTracker::NotifyTrackingFeatures(
     const int64_t timestamp_us, const std::vector<TrackingFeature>& features) {
   std::vector<TrackingFeaturesCallback> callbacks;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     callbacks = tracking_features_callbacks_;
   }
 

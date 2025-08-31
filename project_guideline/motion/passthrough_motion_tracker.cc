@@ -24,7 +24,7 @@
 namespace guideline::motion {
 
 void PassthroughMotionEmitter::OnTracking(const bool is_tracking) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (tracking_callback_.has_value()) {
     (*tracking_callback_)(is_tracking);
   }
@@ -32,7 +32,7 @@ void PassthroughMotionEmitter::OnTracking(const bool is_tracking) {
 
 void PassthroughMotionEmitter::OnCameraPose(
     const int64_t timestamp_us, const util::Transformation& world_t_camera) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (motion_callback_.has_value()) {
     (*motion_callback_)(timestamp_us, world_t_camera);
   }
@@ -41,13 +41,13 @@ void PassthroughMotionEmitter::OnCameraPose(
 void PassthroughMotionEmitter::SetCallbacks(
     const PassthroughMotionCallback& motion_callback,
     const motion::TrackingStateCallback& tracking_callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   motion_callback_ = motion_callback;
   tracking_callback_ = tracking_callback;
 }
 
 void PassthroughMotionEmitter::ClearCallbacks() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   motion_callback_ = std::nullopt;
   tracking_callback_ = std::nullopt;
 }
@@ -66,7 +66,7 @@ absl::Status PassthroughMotionTracker::Stop() {
 
 void PassthroughMotionTracker::OnTracking(const bool is_tracking) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (tracking_ != is_tracking) {
       tracking_ = is_tracking;
     }
