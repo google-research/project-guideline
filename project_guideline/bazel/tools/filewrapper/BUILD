@@ -13,6 +13,8 @@
 # limitations under the License.
 
 load("//project_guideline/bazel:gl_cc_embed_data.bzl", "gl_cc_embed_data")
+load("//third_party/bazel_rules/rules_cc/cc:cc_binary.bzl", "cc_binary")
+load("//third_party/bazel_rules/rules_cc/cc:cc_test.bzl", "cc_test")
 
 package(default_applicable_licenses = ["//:license"])
 

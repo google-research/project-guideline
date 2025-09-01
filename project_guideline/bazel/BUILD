@@ -28,4 +28,7 @@ exports_files([
 bzl_library(
     name = "gl_cc_embed_data",
     srcs = ["gl_cc_embed_data.bzl"],
+    deps = [
+        "//third_party/bazel_rules/rules_cc/cc:core_rules",
+    ],
 )

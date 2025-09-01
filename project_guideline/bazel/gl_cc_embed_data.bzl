@@ -14,6 +14,8 @@
 
 """Embeds binary data in cc_*() rules."""
 
+load("//third_party/bazel_rules/rules_cc/cc:cc_library.bzl", "cc_library")
+
 _FILEWRAPPER = "//project_guideline/bazel/tools/filewrapper"
 
 def _gl_cc_embed_data_impl(ctx):
@@ -82,7 +84,7 @@ def gl_cc_embed_data(name, srcs = [], namespace = "", **kwargs):
             "%s.cc" % name,
         ],
     )
-    native.cc_library(
+    cc_library(
         name = name,
         hdrs = [":%s.h" % name],
         srcs = [":%s.cc" % name],
