@@ -79,7 +79,7 @@ AudioStreamRenderer::AudioStreamRenderer(
 }
 
 void AudioStreamRenderer::SetLoop(bool loop) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   loop_ = loop;
 
   // If we stop looping while in a loop delay period, just go to end-of-stream
@@ -91,34 +91,34 @@ void AudioStreamRenderer::SetLoop(bool loop) {
 }
 
 void AudioStreamRenderer::SetLoopRepeatDelay(absl::Duration delay) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   loop_repeat_delay_ = delay;
 }
 
 bool AudioStreamRenderer::IsPlaying() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return playing_ && !end_of_stream_;
 }
 
 void AudioStreamRenderer::SetPlaybackRate(float playback_rate) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   playback_rate_ = playback_rate;
   static const float kPlaybackRateEpsilon = 0.01f;
   has_playback_rate_ = std::abs(1. - playback_rate_) > kPlaybackRateEpsilon;
 }
 
 void AudioStreamRenderer::Play() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   playing_ = true;
 }
 
 void AudioStreamRenderer::Stop() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   playing_ = false;
 }
 
 void AudioStreamRenderer::Reset() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   data_position_ = 0;
   end_of_stream_ = false;
   playing_ = false;
@@ -127,7 +127,7 @@ void AudioStreamRenderer::Reset() {
 }
 
 const float** AudioStreamRenderer::GetNextBuffer() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   int num_data_frames = (*audio_data_)[0].size();
   int num_channels = GetNumChannels();
@@ -261,13 +261,13 @@ const float** AudioStreamRenderer::GetNextBuffer() {
 size_t AudioStreamRenderer::GetNumChannels() { return output_buffer_.size(); }
 
 int AudioStreamRenderer::GetCurrentLoopCount() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return current_loop_count_;
 }
 
 void AudioStreamRenderer::SetStereoVolume(float left_volume,
                                           float right_volume) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   CHECK_EQ(output_buffer_.size(), 2);
   left_volume_ = left_volume;
   right_volume_ = right_volume;

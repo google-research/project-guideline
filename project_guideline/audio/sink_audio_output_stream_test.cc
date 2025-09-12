@@ -30,7 +30,7 @@ namespace {
 class FakeAudioCallback {
  public:
   bool OnMoreData(int16_t* buffer_ptr, size_t num_channel, size_t num_frames) {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     ++num_data_callbacks_;
     if (next_callback_notification_ &&
         !next_callback_notification_->HasBeenNotified()) {
@@ -42,20 +42,20 @@ class FakeAudioCallback {
   bool WaitForCallback() {
     absl::Notification* notification;
     {
-      absl::MutexLock lock(&mutex_);
+      absl::MutexLock lock(mutex_);
       notification = next_callback_notification_.get();
     }
     notification->WaitForNotificationWithTimeout(absl::Seconds(1));
     bool had_callback = notification->HasBeenNotified();
     {
-      absl::MutexLock lock(&mutex_);
+      absl::MutexLock lock(mutex_);
       next_callback_notification_ = std::make_unique<absl::Notification>();
     }
     return had_callback;
   }
 
   int GetNumDataCallbacks() {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     return num_data_callbacks_;
   }
 

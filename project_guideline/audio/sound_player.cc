@@ -42,7 +42,7 @@ absl::StatusOr<SoundId> SoundPlayer::LoadStereoSound(
 absl::StatusOr<SoundId> SoundPlayer::LoadSound(
     const vraudio::ResonanceAudioApi::SourceId source_id,
     const util::EmbeddedFileToc* toc, bool mono_to_stereo) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto sound_data = std::make_unique<std::string>(toc[0].data, toc[0].size);
   GL_ASSIGN_OR_RETURN(
       auto renderer,
@@ -55,20 +55,20 @@ absl::StatusOr<SoundId> SoundPlayer::LoadSound(
 }
 
 void SoundPlayer::Play(SoundId sound_id) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->Play();
 }
 
 bool SoundPlayer::IsPlaying(SoundId sound_id) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   return sound.renderer->IsPlaying();
 }
 
 void SoundPlayer::PlayExclusiveSoundOnce(
     SoundId sound_id, const SoundFinishedCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (exclusive_sound_.has_value()) {
     auto& stop_sound = *loaded_sounds_.at(exclusive_sound_.value().first);
     stop_sound.renderer->Reset();
@@ -82,68 +82,68 @@ void SoundPlayer::PlayExclusiveSoundOnce(
 }
 
 bool SoundPlayer::IsPlayingExclusiveSound() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return exclusive_sound_.has_value();
 }
 
 void SoundPlayer::Reset(SoundId sound_id) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->Reset();
 }
 
 void SoundPlayer::Stop(SoundId sound_id) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->Stop();
 }
 
 void SoundPlayer::SetLoop(SoundId sound_id, bool loop) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->SetLoop(loop);
 }
 
 void SoundPlayer::SetLoopRepeatDelay(SoundId sound_id, absl::Duration delay) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->SetLoopRepeatDelay(delay);
 }
 
 int SoundPlayer::GetCurrentLoopCount(SoundId sound_id) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   return sound.renderer->GetCurrentLoopCount();
 }
 
 void SoundPlayer::SetSourceVolume(SoundId sound_id, float volume) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   resonance_audio_->SetSourceVolume(sound.source_id, volume);
 }
 
 void SoundPlayer::SetStereoVolume(SoundId sound_id, float left_volume,
                                   float right_volume) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->SetStereoVolume(left_volume, right_volume);
 }
 
 void SoundPlayer::SetSourcePosition(SoundId sound_id, float x, float y,
                                     float z) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   resonance_audio_->SetSourcePosition(sound.source_id, x, y, z);
 }
 
 void SoundPlayer::SetPlaybackRate(SoundId sound_id, float playback_rate) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   auto& sound = *loaded_sounds_.at(sound_id);
   sound.renderer->SetPlaybackRate(playback_rate);
 }
 
 void SoundPlayer::StopAll() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   for (auto it = loaded_sounds_.cbegin(); it != loaded_sounds_.cend(); ++it) {
     auto& sound = *it->second;
     sound.renderer->Reset();
@@ -154,7 +154,7 @@ void SoundPlayer::OnMoreData(size_t num_frames) {
   SoundFinishedCallback exclusive_finished_callback = nullptr;
   SoundId exclusive_sound_id;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
 
     for (auto it = loaded_sounds_.cbegin(); it != loaded_sounds_.cend(); ++it) {
       auto& sound = *it->second;

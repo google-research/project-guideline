@@ -99,7 +99,7 @@ AudioSystem::AudioSystem(
 AudioSystem::~AudioSystem() { CHECK_OK(Stop()); }
 
 absl::Status AudioSystem::Initialize() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   GL_RETURN_IF_ERROR(sound_pack_->Initialize());
 
@@ -142,7 +142,7 @@ absl::Status AudioSystem::Start() {
       absl::bind_front(&AudioSystem::OnMoreData, this)));
 
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     started_ = true;
 
     BeginInitializationState();
@@ -153,7 +153,7 @@ absl::Status AudioSystem::Start() {
 
 absl::Status AudioSystem::Stop() {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (!started_) {
       return absl::OkStatus();
     }
@@ -187,7 +187,7 @@ bool AudioSystem::OnMoreData(int16_t* buffer_ptr, size_t num_channels,
     audio_stream_started_.Notify();
   }
 
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   if (!started_) {
     return false;
@@ -211,7 +211,7 @@ bool AudioSystem::OnMoreData(int16_t* buffer_ptr, size_t num_channels,
 }
 
 void AudioSystem::OnControlSignal(const environment::ControlSignal& signal) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   // If we get a stop signal, play the "Stop" sound immediately.
   if (signal.stop) {

@@ -45,7 +45,7 @@ absl::Status SinkAudioOutputStream::StartPlayback(
     CHECK(thread_ == nullptr);
 
     {
-      absl::MutexLock lock(&callback_mutex_);
+      absl::MutexLock lock(callback_mutex_);
       callback_ = callback;
     }
 
@@ -61,7 +61,7 @@ absl::Status SinkAudioOutputStream::StopPlayback() {
     thread_->join();
     thread_.reset();
     {
-      absl::MutexLock lock(&callback_mutex_);
+      absl::MutexLock lock(callback_mutex_);
       callback_ = nullptr;
     }
   }
@@ -81,7 +81,7 @@ void SinkAudioOutputStream::Run() {
   while (running_.load()) {
     audio::AudioOutputStream::Callback callback;
     {
-      absl::MutexLock lock(&callback_mutex_);
+      absl::MutexLock lock(callback_mutex_);
       callback = callback_;
     }
     if (!callback) {
