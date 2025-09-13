@@ -46,12 +46,12 @@ using util::Transformation;
 class TestControlSignalListener : public UnrealControlSignalListener {
  public:
   void OnControlSignal(const UnrealControlSignal& control_signal) override {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     control_signals_.push_back(control_signal);
   }
 
   std::vector<UnrealControlSignal> ControlSignals() {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     return control_signals_;
   }
 
@@ -60,7 +60,7 @@ class TestControlSignalListener : public UnrealControlSignalListener {
                                ABSL_SHARED_LOCKS_REQUIRED(mutex_) {
                                  return control_signals_.size() == num_signals;
                                };
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     mutex_.AwaitWithTimeout(absl::Condition(&value_condition), timeout);
   }
 
@@ -71,7 +71,7 @@ class TestControlSignalListener : public UnrealControlSignalListener {
 class LogEventListener {
  public:
   void OnLogEvent(const GuidelineLogEvent& event) {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (event.has_line_detector_results()) {
       ++num_line_detector_results_;
     }
@@ -83,7 +83,7 @@ class LogEventListener {
                             this]() ABSL_SHARED_LOCKS_REQUIRED(mutex_) {
       return num_line_detector_results_ == num_results;
     };
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     mutex_.AwaitWithTimeout(absl::Condition(&value_condition), timeout);
   }
 

@@ -32,13 +32,13 @@ UnrealAudioOutputStream::~UnrealAudioOutputStream() {
 
 absl::Status UnrealAudioOutputStream::StartPlayback(
     const audio::AudioOutputStream::Callback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   callback_ = callback;
   return absl::OkStatus();
 }
 
 absl::Status UnrealAudioOutputStream::StopPlayback() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   callback_ = nullptr;
   return absl::OkStatus();
 }
@@ -47,7 +47,7 @@ int32_t UnrealAudioOutputStream::OnGenerateAudio(int16_t* out_buffer,
                                                  int32_t num_samples) {
   audio::AudioOutputStream::Callback callback;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     callback = callback_;
   }
   if (!callback || !callback(out_buffer, kNumChannels, num_samples)) {

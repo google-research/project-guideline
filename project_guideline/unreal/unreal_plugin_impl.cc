@@ -301,12 +301,12 @@ int32_t UnrealPluginImpl::OnGenerateAudio(int16_t* out_buffer,
 
 void UnrealPluginImpl::SetControlSignalListener(
     UnrealControlSignalListener* listener) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   control_signal_listener_ = listener;
 }
 
 void UnrealPluginImpl::SetDebugLogListener(UnrealDebugLogListener* listener) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   debug_log_listener_ = listener;
 }
 
@@ -317,7 +317,7 @@ void UnrealPluginImpl::SetLogEventCallback(
 
 void UnrealPluginImpl::OnControlSignal(
     const environment::ControlSignal& control_signal) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (control_signal_listener_) {
     UnrealControlSignal unreal_signal;
     unreal_signal.stop = control_signal.stop;
@@ -339,7 +339,7 @@ void UnrealPluginImpl::OnControlSignal(
 
 void UnrealPluginImpl::OnDebugMessage(DebugLogLevel level,
                                       const std::string& message) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (debug_log_listener_) {
     debug_log_listener_->OnDebugLog(message.c_str());
   }
@@ -391,7 +391,7 @@ void UnrealPluginImpl::ReleaseGuidelinePoints(GuidelinePoints* points) {
 }
 
 UnrealControlSignal UnrealPluginImpl::GetLastControlSignal() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   return last_control_signal_;
 }
 
