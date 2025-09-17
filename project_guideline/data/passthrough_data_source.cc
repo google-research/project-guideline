@@ -26,7 +26,7 @@ void PassthroughDataEmitter::OnImage(
     const std::shared_ptr<const util::Image>& image) {
   std::optional<DataSource::ImageCallback> callback;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     callback = image_callback_;
   }
   if (callback.has_value()) {
@@ -36,12 +36,12 @@ void PassthroughDataEmitter::OnImage(
 
 void PassthroughDataEmitter::SetCallbacks(
     const DataSource::ImageCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   image_callback_ = callback;
 }
 
 void PassthroughDataEmitter::ClearCallbacks() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   image_callback_ = std::nullopt;
 }
 
@@ -50,14 +50,14 @@ PassthroughDataSource::PassthroughDataSource(
     : emitter_(emitter) {}
 
 absl::Status PassthroughDataSource::Start() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   started_ = true;
   emitter_->SetCallbacks(
       absl::bind_front(&PassthroughDataSource::OnImage, this));
   return absl::OkStatus();
 }
 absl::Status PassthroughDataSource::Stop() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   started_ = false;
   emitter_->ClearCallbacks();
   return absl::OkStatus();
@@ -65,7 +65,7 @@ absl::Status PassthroughDataSource::Stop() {
 
 absl::Status PassthroughDataSource::AddImageCallback(
     const ImageCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   image_callbacks_.push_back(callback);
   return absl::OkStatus();
 }
@@ -78,7 +78,7 @@ absl::Status PassthroughDataSource::AddOnCompletedCallback(
 
 void PassthroughDataSource::OnImage(
     const std::shared_ptr<const util::Image>& image) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   for (const auto& callback : image_callbacks_) {
     callback(image);
   }
