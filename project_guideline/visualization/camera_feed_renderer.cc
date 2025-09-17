@@ -148,12 +148,12 @@ absl::Status CameraFeedRenderer::OnGlInit() {
 }
 
 void CameraFeedRenderer::OnGlTextureUpdated() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   has_valid_texture_ = true;
 }
 
 void CameraFeedRenderer::OnGlTextureReset() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   has_valid_texture_ = false;
 }
 
@@ -183,14 +183,14 @@ void CameraFeedRenderer::SetViewport(int width, int height) {
       .prescale(Eigen::Vector3f{x_scale, y_scale, 1.0f});
 
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     transform_matrix_ = t.matrix();
   }
 }
 
 void CameraFeedRenderer::OnImage(
     const std::shared_ptr<const util::Image>& image) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   CHECK(image->format() == util::ImageFormat::kRGB)
       << "Image must be RGB format";
@@ -201,7 +201,7 @@ void CameraFeedRenderer::OnImage(
 void CameraFeedRenderer::Render() {
   Eigen::Matrix4f transform_matrix;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
 
     if (texture_update_image_) {
       glBindTexture(TEXTURE_TARGET, texture_);

@@ -304,7 +304,7 @@ void MlOutputRenderer::SetViewport(int width, int height) {
       .prescale(Eigen::Vector3f{x_scale, y_scale, 1.0f});
 
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     transform_matrix_ = t.matrix();
   }
 }
@@ -312,14 +312,14 @@ void MlOutputRenderer::SetViewport(int width, int height) {
 void MlOutputRenderer::OnSegmentationMask(
     std::shared_ptr<const util::ConfidenceMask> segmentation_mask,
     const std::vector<Eigen::Vector3f>& keypoints) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   segmentation_mask_ = segmentation_mask;
   keypoints_ = keypoints;
 }
 
 void MlOutputRenderer::OnDepthMap(
     std::shared_ptr<const util::DepthImage> depth_map) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   depth_map_ = depth_map;
 }
 
@@ -330,7 +330,7 @@ void MlOutputRenderer::Render() {
 
   Eigen::Matrix4f transform_matrix;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (segmentation_mask_) {
       glBindTexture(GL_TEXTURE_2D, mask_texture_);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, segmentation_mask_->width(),
@@ -353,7 +353,7 @@ void MlOutputRenderer::Render() {
   glUseProgram(program_);
 
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (!keypoints_.empty()) {
       const size_t kMaxKeypointCount = 100;
       if (keypoints_.size() > kMaxKeypointCount) {

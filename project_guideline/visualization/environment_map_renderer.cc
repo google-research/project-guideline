@@ -426,7 +426,7 @@ void EnvironmentMapRenderer::Render() {
   glUniform4f(uniform_viewport_, map_viewport_[0], map_viewport_[1],
               map_viewport_[2], map_viewport_[3]);
 
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   if (position_and_direction_.has_value()) {
     glUniform2f(uniform_runner_position_, position_and_direction_->p().x(),
@@ -558,30 +558,30 @@ void EnvironmentMapRenderer::Render() {
 
 void EnvironmentMapRenderer::OnPose(
     const util::Transformation& position_and_direction) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   position_and_direction_ = position_and_direction;
 }
 
 void EnvironmentMapRenderer::OnControlSignal(
     const environment::ControlSignal& signal) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   control_signal_ = signal;
 }
 
 void EnvironmentMapRenderer::OnGuideline(
     const std::vector<Eigen::Vector3d>& guideline) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   guideline_ = guideline;
 }
 
 void EnvironmentMapRenderer::OnObstacles(
     const std::vector<Eigen::Vector2d>& obstacles) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   obstacles_ = obstacles;
 }
 
 void EnvironmentMapRenderer::Reset() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   control_signal_ = environment::ControlSignal();
   control_signal_.stop = true;
   position_and_direction_ = std::nullopt;
