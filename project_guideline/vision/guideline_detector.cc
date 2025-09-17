@@ -129,7 +129,7 @@ absl::Status GuidelineDetector::Stop() {
   running_ = false;
 
   {
-    absl::MutexLock lock(&image_mutex_);
+    absl::MutexLock lock(image_mutex_);
     last_image_ = nullptr;
   }
 
@@ -143,14 +143,14 @@ absl::Status GuidelineDetector::Stop() {
 }
 
 void GuidelineDetector::AddCallback(const DetectionCallback& callback) {
-  absl::MutexLock lock(&callbacks_mutex_);
+  absl::MutexLock lock(callbacks_mutex_);
   callbacks_.push_back(callback);
 }
 
 void GuidelineDetector::OnImage(
     const std::shared_ptr<const util::Image>& image) {
   if (running_) {
-    absl::MutexLock lock(&image_mutex_);
+    absl::MutexLock lock(image_mutex_);
     last_image_ = image;
   }
 }
@@ -158,7 +158,7 @@ void GuidelineDetector::OnImage(
 void GuidelineDetector::RunDetector() {
   while (running_) {
     std::shared_ptr<const util::Image> image;
-    image_mutex_.Lock();
+    image_mutex_.lock();
     auto has_image_or_stopped =
         [this]() ABSL_SHARED_LOCKS_REQUIRED(image_mutex_) {
           return !running_ || last_image_ != nullptr;
@@ -166,7 +166,7 @@ void GuidelineDetector::RunDetector() {
     image_mutex_.Await(absl::Condition(&has_image_or_stopped));
     image = last_image_;
     last_image_ = nullptr;
-    image_mutex_.Unlock();
+    image_mutex_.unlock();
 
     if (image) {
       auto status = ProcessImage(*image);
@@ -262,7 +262,7 @@ absl::Status GuidelineDetector::ProcessImage(const util::Image& image) {
       std::make_unique<MediaPipeScopedData>(
           guideline_mask.GetImageFrameSharedPtr()));
 
-  absl::MutexLock lock(&callbacks_mutex_);
+  absl::MutexLock lock(callbacks_mutex_);
   for (const auto& callback : callbacks_) {
     int64_t timestamp_us = absl::ToInt64Microseconds(
         absl::Nanoseconds(image.metadata().timestamp_ns));
