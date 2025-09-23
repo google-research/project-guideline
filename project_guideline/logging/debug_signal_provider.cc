@@ -65,7 +65,7 @@ void DebugSignalProvider::OnCameraPose(
     int64_t timestamp_us, const util::Transformation& world_t_camera,
     std::shared_ptr<camera::CameraModel> camera_model) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (timestamp_us - last_camera_pose_timestamp_us_ < pow(10, 6)) {
       camera_pose_update_count_++;
     } else {
@@ -82,7 +82,7 @@ void DebugSignalProvider::OnDetection(
     std::shared_ptr<const util::ConfidenceMask> guideline_mask,
     std::shared_ptr<const util::DepthImage> depth_map) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (timestamp_us - last_detection_timestamp_us_ < pow(10, 6)) {
       detection_update_count_++;
     } else {
@@ -101,14 +101,14 @@ void DebugSignalProvider::OnControlSignal(
 void DebugSignalProvider::OnGuideline(
     const std::vector<Eigen::Vector3d>& guideline) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     guideline_count_ = guideline.size();
   }
 }
 
 void DebugSignalProvider::OnTrackingStateChanged(bool is_tracking) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     tracking_ = is_tracking;
   }
 }
@@ -117,7 +117,7 @@ void DebugSignalProvider::OnTrackingFeatures(
     int64_t timestamp_us,
     const std::vector<motion::TrackingFeature>& features) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     if (timestamp_us - last_tracking_features_timestamp_us_ < 1000000) {
       tracking_features_update_count_++;
     } else {
@@ -132,7 +132,7 @@ void DebugSignalProvider::OnTrackingFeatures(
 void DebugSignalProvider::AddDebugSignalCallback(
     const DebugSignalCallback& debug_signal_callback) {
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     debug_signal_callbacks_.push_back(debug_signal_callback);
   }
 }
@@ -140,7 +140,7 @@ void DebugSignalProvider::AddDebugSignalCallback(
 void DebugSignalProvider::NotifyDebugSignalCallbacks() {
   DebugSignal debug_signal;
   {
-    absl::MutexLock lock(&mutex_);
+    absl::MutexLock lock(mutex_);
     debug_signal.camera_pose_fps = current_camera_pose_fps_;
     debug_signal.camera_pose_lagging_frame = camera_pose_lag_count_;
     camera_pose_lag_count_++;

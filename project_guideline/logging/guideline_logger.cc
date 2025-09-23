@@ -24,7 +24,7 @@ namespace guideline::logging {
 
 void GuidelineLogger::LogEvent(GuidelineLogEvent event) {
   LogEventInternal(event);
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (log_event_callback_.has_value()) {
     (*log_event_callback_)(event);
   }
@@ -62,7 +62,7 @@ void GuidelineLogger::LogDebugMessage(const DebugLogLevel level,
     return;
   }
   LogDebugMessageInternal(level, tag, message);
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   if (debug_message_callback_.has_value()) {
     (*debug_message_callback_)(level, message);
   }
@@ -70,12 +70,12 @@ void GuidelineLogger::LogDebugMessage(const DebugLogLevel level,
 
 void GuidelineLogger::SetDebugMessageCallback(
     const DebugMessageCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   debug_message_callback_ = callback;
 }
 
 void GuidelineLogger::SetLogEventCallback(const LogEventCallback& callback) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
   log_event_callback_ = callback;
 }
 

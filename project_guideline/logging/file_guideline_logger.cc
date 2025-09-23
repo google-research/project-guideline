@@ -62,7 +62,7 @@ FileGuidelineLogger::FileGuidelineLogger(int fd, std::string output_dir,
 FileGuidelineLogger::~FileGuidelineLogger() { Close(); }
 
 void FileGuidelineLogger::LogEventInternal(GuidelineLogEvent& event) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   if (closed_) {
     return;
@@ -79,7 +79,7 @@ void FileGuidelineLogger::LogEventInternal(GuidelineLogEvent& event) {
 
 void FileGuidelineLogger::LogDepth(const util::Image& depth,
                                    const util::Image& conf, int64_t timestamp) {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   if (closed_) {
     return;
@@ -117,7 +117,7 @@ void FileGuidelineLogger::LogDebugMessageInternal(const DebugLogLevel level,
 }
 
 void FileGuidelineLogger::Close() {
-  absl::MutexLock lock(&mutex_);
+  absl::MutexLock lock(mutex_);
 
   if (closed_) {
     return;
