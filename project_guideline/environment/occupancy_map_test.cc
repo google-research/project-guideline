@@ -49,7 +49,6 @@ std::vector<Vector2d> GetOccupiedGrids(
 
 TEST(FrameBasedOccupancyMap, TestFilteredPoints) {
   OccupancyMapOptions options;
-  options.frame_based_occupancy_map_options();
   options.mutable_frame_based_occupancy_map_options()
       ->mutable_clearance_zone_options()
       ->set_depth(2);
@@ -75,7 +74,6 @@ TEST(FrameBasedOccupancyMap, TestFilteredPoints) {
 
 TEST(FrameBasedOccupancyMap, TestComputeOccupancyMap) {
   OccupancyMapOptions options;
-  options.frame_based_occupancy_map_options();
   options.mutable_frame_based_occupancy_map_options()
       ->mutable_clearance_zone_options()
       ->set_depth(2);
@@ -104,7 +102,6 @@ TEST(FrameBasedOccupancyMap, TestComputeOccupancyMap) {
 
 TEST(FrameBasedOccupancyMap, TopBottomRelativeToCamera) {
   OccupancyMapOptions options;
-  options.frame_based_occupancy_map_options();
   options.mutable_frame_based_occupancy_map_options()
       ->mutable_clearance_zone_options()
       ->set_depth(2);
