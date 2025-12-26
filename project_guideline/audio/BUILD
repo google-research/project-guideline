@@ -212,7 +212,6 @@ cc_library(
     deps = [
         ":audio_output_stream",
         "//project_guideline/util:clock",
-        "//util/functional:from_callback",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
