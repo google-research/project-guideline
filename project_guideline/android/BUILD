@@ -40,7 +40,6 @@ android_binary(
         "versionName": "1.0",
         "applicationId": "com.google.research.guideline",
     },
-    multidex = "native",
     nocompress_extensions = [
         ".tflite",
     ],
