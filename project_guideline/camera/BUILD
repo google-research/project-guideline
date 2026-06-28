@@ -63,8 +63,8 @@ cc_library(
         ":camera_model",
         "@com_google_absl//absl/log",
         "@eigen_archive//:eigen3",
-        "@mediapipe//mediapipe/framework/port:opencv_calib3d",
         "@mediapipe//mediapipe/framework/port:opencv_core",
+        "@mediapipe//mediapipe/framework/port:opencv_geometry",
         "@mediapipe//mediapipe/framework/port:opencv_imgproc",
     ],
 )
