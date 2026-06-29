@@ -14,6 +14,8 @@
 
 #include "project_guideline/environment/occupancy_map.h"
 
+#include <algorithm>
+#include <cmath>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -50,10 +52,12 @@ std::unique_ptr<OccupancyMap> OccupancyMap::Create(
 absl::StatusOr<std::vector<std::pair<Vector2d, int>>>
 OccupancyMap::ComputeOccupancyMap(
     const std::vector<Point3D>& point_cloud,
-    const Transformation& human_position_direction) {
-  if (point_cloud.empty()) {
+    const Transformation& human_position_direction,
+    absl::Span<const WorldModelOccupancyPrior> world_model_priors) {
+  if (point_cloud.empty() && world_model_priors.empty()) {
     return absl::FailedPreconditionError(
-        "OccupancyMap::ComputeOccupancyMap: Not point cloud found.");
+        "OccupancyMap::ComputeOccupancyMap: No point cloud or world model "
+        "priors found.");
   }
 
   // Compute the clearance zone based on human position and direction.
@@ -85,6 +89,24 @@ OccupancyMap::ComputeOccupancyMap(
     }
   }
 
+  for (const WorldModelOccupancyPrior& prior : world_model_priors) {
+    if (prior.confidence < options_.world_model_prior_confidence_threshold()) {
+      continue;
+    }
+    if (prior.occupancy_weight <= 0 || !std::isfinite(prior.position.x()) ||
+        !std::isfinite(prior.position.y())) {
+      continue;
+    }
+
+    const std::pair<float, float> closest_grid(std::round(prior.position.x()),
+                                               std::round(prior.position.y()));
+    if (occupancy_grids.contains(closest_grid)) {
+      occupancy_grids[closest_grid] +=
+          std::max(1, static_cast<int>(std::ceil(
+                          prior.occupancy_weight * prior.confidence)));
+    }
+  }
+
   std::vector<std::pair<Vector2d, int>> occupancy_map;
   for (auto it = occupancy_grids.begin(); it != occupancy_grids.end(); ++it) {
     int occupancy = it->second;
@@ -101,8 +123,17 @@ OccupancyMap::ComputeOccupancyMap(
 void OccupancyMap::UpdateOccupancyMap(
     const std::vector<Point3D>& point_cloud,
     const Transformation& human_position_direction) {
+  UpdateOccupancyMap(point_cloud, human_position_direction,
+                     absl::Span<const WorldModelOccupancyPrior>());
+}
+
+void OccupancyMap::UpdateOccupancyMap(
+    const std::vector<Point3D>& point_cloud,
+    const Transformation& human_position_direction,
+    absl::Span<const WorldModelOccupancyPrior> world_model_priors) {
   auto new_occupancy_map =
-      ComputeOccupancyMap(point_cloud, human_position_direction);
+      ComputeOccupancyMap(point_cloud, human_position_direction,
+                          world_model_priors);
   if (!new_occupancy_map.ok()) {
     LOG_EVERY_N_SEC(WARNING, kLogSeconds)
         << new_occupancy_map.status().message();

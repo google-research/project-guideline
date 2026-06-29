@@ -119,6 +119,10 @@ message FrameBasedOccupancyMapOptions {
   optional float occupancy_threshold = 1 [default = 5];
   optional ClearanceZoneOptions clearance_zone_options = 2;
   optional float point_confidence_threshold = 3 [default = 0.1];
+  // Minimum confidence for model-derived semantic occupancy priors. These
+  // priors are intended for future world-model or foundation-model adapters
+  // that can estimate hazardous regions independently of frame-local depth.
+  optional float world_model_prior_confidence_threshold = 4 [default = 0.5];
 }
 
 message ClearanceZoneOptions {
