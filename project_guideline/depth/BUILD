@@ -37,8 +37,8 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings:str_format",
         "@eigen_archive//:eigen3",
-        "@mediapipe//mediapipe/framework/port:opencv_calib3d",
         "@mediapipe//mediapipe/framework/port:opencv_core",
+        "@mediapipe//mediapipe/framework/port:opencv_geometry",
     ],
 )
 
