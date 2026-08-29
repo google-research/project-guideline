@@ -14,6 +14,7 @@
 
 #include "project_guideline/environment/occupancy_map.h"
 
+#include <limits>
 #include <utility>
 #include <vector>
 
@@ -21,6 +22,7 @@
 #include "gtest/gtest.h"
 #include "Eigen/Core"
 #include "project_guideline/depth/point_cloud_util.h"
+#include "project_guideline/environment/world_model.h"
 #include "project_guideline/util/transformation.h"
 
 namespace guideline {
@@ -133,6 +135,91 @@ TEST(FrameBasedOccupancyMap, TopBottomRelativeToCamera) {
   EXPECT_THAT(GetOccupiedGrids(map),
               UnorderedElementsAreArray(
                   std::vector({Vector2d(1.0, 1.0), Vector2d(2.0, -1.0)})));
+}
+
+TEST(FrameBasedOccupancyMap, WorldModelPriorsCanPopulateOccupancyMap) {
+  OccupancyMapOptions options;
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_depth(2);
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_width(4);
+  options.mutable_frame_based_occupancy_map_options()->set_occupancy_threshold(
+      2);
+  options.mutable_frame_based_occupancy_map_options()
+      ->set_world_model_prior_confidence_threshold(0.5);
+  auto occupancy_map = OccupancyMap::Create(options);
+
+  Transformation human_position_direction({0, 0, -0.707, -0.707},
+                                          {0, 0, 0});
+  std::vector<WorldModelOccupancyPrior> world_model_priors = {
+      WorldModelOccupancyPrior(Vector2d(0.9, 0.8), 0.75, 3.0)};
+
+  occupancy_map->UpdateOccupancyMap(std::vector<Point3D>(),
+                                    human_position_direction,
+                                    world_model_priors);
+
+  auto map = occupancy_map->GetOccupancyMap();
+  EXPECT_EQ(map.size(), 20);
+  EXPECT_THAT(GetOccupiedGrids(map),
+              UnorderedElementsAreArray(std::vector({Vector2d(1.0, 1.0)})));
+}
+
+TEST(FrameBasedOccupancyMap, LowConfidenceWorldModelPriorsAreIgnored) {
+  OccupancyMapOptions options;
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_depth(2);
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_width(4);
+  options.mutable_frame_based_occupancy_map_options()->set_occupancy_threshold(
+      1);
+  options.mutable_frame_based_occupancy_map_options()
+      ->set_world_model_prior_confidence_threshold(0.5);
+  auto occupancy_map = OccupancyMap::Create(options);
+
+  Transformation human_position_direction({0, 0, -0.707, -0.707},
+                                          {0, 0, 0});
+  std::vector<WorldModelOccupancyPrior> world_model_priors = {
+      WorldModelOccupancyPrior(Vector2d(0.9, 0.8), 0.49, 10.0)};
+
+  occupancy_map->UpdateOccupancyMap(std::vector<Point3D>(),
+                                    human_position_direction,
+                                    world_model_priors);
+
+  auto map = occupancy_map->GetOccupancyMap();
+  EXPECT_EQ(map.size(), 20);
+  EXPECT_THAT(GetOccupiedGrids(map), IsEmpty());
+}
+
+TEST(FrameBasedOccupancyMap, InvalidWorldModelPriorsAreIgnored) {
+  OccupancyMapOptions options;
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_depth(2);
+  options.mutable_frame_based_occupancy_map_options()
+      ->mutable_clearance_zone_options()
+      ->set_width(4);
+  options.mutable_frame_based_occupancy_map_options()->set_occupancy_threshold(
+      1);
+  auto occupancy_map = OccupancyMap::Create(options);
+
+  Transformation human_position_direction({0, 0, -0.707, -0.707},
+                                          {0, 0, 0});
+  std::vector<WorldModelOccupancyPrior> world_model_priors = {
+      WorldModelOccupancyPrior(Vector2d(0.9, 0.8), 0.9, 0.0),
+      WorldModelOccupancyPrior(
+          Vector2d(std::numeric_limits<double>::quiet_NaN(), 0.8), 0.9, 10.0)};
+
+  occupancy_map->UpdateOccupancyMap(std::vector<Point3D>(),
+                                    human_position_direction,
+                                    world_model_priors);
+
+  auto map = occupancy_map->GetOccupancyMap();
+  EXPECT_EQ(map.size(), 20);
+  EXPECT_THAT(GetOccupiedGrids(map), IsEmpty());
 }
 
 }  // namespace
