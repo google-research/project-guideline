@@ -34,7 +34,19 @@ message GuidelineEngineConfig {
   }
 
   // Options for the line detector.
+  // Next available index: 5
   message DetectorOptions {
+    // Target line color for Guideline detector.
+    enum TargetLineColor {
+      // Treated as LINE_COLOR_PURPLE.
+      LINE_COLOR_UNSPECIFIED = 0;
+      LINE_COLOR_PURPLE = 1;
+      LINE_COLOR_BLUE = 2;
+      LINE_COLOR_GREEN = 3;
+      LINE_COLOR_YELLOW = 4;
+      LINE_COLOR_RED = 5;
+    }
+
     // TFlite files for the ML pipeline.
     message ModelFiles {
       optional FileDescriptor model_fd = 1;
@@ -48,6 +60,9 @@ message GuidelineEngineConfig {
 
     // Enables the segmentation subgraph, also required for depth.
     optional bool use_subgraph = 3;
+
+    optional TargetLineColor target_line_color = 4
+        [default = LINE_COLOR_PURPLE];
   }
 
   optional DetectorOptions detector_options = 1;
