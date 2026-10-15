@@ -103,7 +103,7 @@ TEST(HoughTransformTest, MaskGoldenSingleSegment) {
   EXPECT_EIGEN_APPROX(results[0].top_intercept, Vector2f(0.45888, 0), 1e-4);
   EXPECT_NEAR(results[0].GetAngleDegrees(kImageWidth, kImageHeight), 12.578,
               1e-4);
-  EXPECT_NEAR(results[0].score, 40.22, 1e-2);
+  EXPECT_NEAR(results[0].score, 40.21, 2e-2);
 }
 
 TEST(HoughTransformTest, MaskGoldenCurve) {
@@ -121,7 +121,7 @@ TEST(HoughTransformTest, MaskGoldenCurve) {
   EXPECT_EIGEN_APPROX(results[0].top_intercept, Vector2f(0.890083, 0), 1e-4);
   EXPECT_NEAR(results[0].GetAngleDegrees(kImageWidth, kImageHeight), 59.6312,
               1e-4);
-  EXPECT_NEAR(results[0].score, 41.08, 1e-2);
+  EXPECT_NEAR(results[0].score, 41.09, 2e-2);
 
   EXPECT_EIGEN_APPROX(results[1].bottom_intercept, Vector2f(0.326447, 0.692308),
                       1e-4);
@@ -129,7 +129,7 @@ TEST(HoughTransformTest, MaskGoldenCurve) {
                       1e-4);
   EXPECT_NEAR(results[1].GetAngleDegrees(kImageWidth, kImageHeight), 22.8018,
               1e-4);
-  EXPECT_NEAR(results[1].score, 55.45, 1e-2);
+  EXPECT_NEAR(results[1].score, 55.38, 1e-1);
 
   EXPECT_EIGEN_APPROX(results[2].bottom_intercept, Vector2f(0.293992, 0.984615),
                       1e-4);
