@@ -21,8 +21,10 @@
 
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/types/span.h"
 #include "Eigen/Core"
 #include "project_guideline/depth/point_cloud_util.h"
+#include "project_guideline/environment/world_model.h"
 #include "project_guideline/proto/guideline_engine_config.pb.h"
 #include "project_guideline/util/transformation.h"
 
@@ -44,13 +46,19 @@ class OccupancyMap {
   std::vector<std::pair<Eigen::Vector2d, int>> GetOccupancyMap();
   void UpdateOccupancyMap(const std::vector<depth::Point3D>& point_cloud,
                           const util::Transformation& human_position_direction);
+  void UpdateOccupancyMap(
+      const std::vector<depth::Point3D>& point_cloud,
+      const util::Transformation& human_position_direction,
+      absl::Span<const WorldModelOccupancyPrior> world_model_priors);
 
  private:
   explicit OccupancyMap(const FrameBasedOccupancyMapOptions options)
       : options_(options) {}
   absl::StatusOr<std::vector<std::pair<Eigen::Vector2d, int>>>
-  ComputeOccupancyMap(const std::vector<depth::Point3D>& point_cloud,
-                      const util::Transformation& human_position_direction);
+  ComputeOccupancyMap(
+      const std::vector<depth::Point3D>& point_cloud,
+      const util::Transformation& human_position_direction,
+      absl::Span<const WorldModelOccupancyPrior> world_model_priors);
   absl::Mutex occupancy_map_lock_;
   std::vector<std::pair<Eigen::Vector2d, int>> occupancy_map_
       ABSL_GUARDED_BY(occupancy_map_lock_);

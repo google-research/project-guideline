@@ -239,6 +239,17 @@ cc_test(
 )
 
 cc_library(
+    name = "world_model",
+    hdrs = ["world_model.h"],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "@eigen_archive//:eigen3",
+    ],
+)
+
+cc_library(
     name = "occupancy_map",
     srcs = ["occupancy_map.cc"],
     hdrs = ["occupancy_map.h"],
@@ -247,6 +258,7 @@ cc_library(
     ],
     deps = [
         ":obstacle_utils",
+        ":world_model",
         "//project_guideline/depth:point_cloud_util",
         "//project_guideline/proto:guideline_engine_config_cc_proto",
         "//project_guideline/util:transformation",
@@ -255,6 +267,7 @@ cc_library(
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/types:span",
         "@eigen_archive//:eigen3",
     ],
 )
@@ -264,6 +277,7 @@ cc_test(
     srcs = ["occupancy_map_test.cc"],
     deps = [
         ":occupancy_map",
+        ":world_model",
         "//project_guideline/depth:point_cloud_util",
         "//project_guideline/util:transformation",
         "@com_google_googletest//:gtest_main",

@@ -259,6 +259,10 @@ frame (camera pose, guideline keypoints, and depth map) and uses these to:
    absolute terms, so a RANSAC (random sample consensus) algorithm is used to
    fit the depth map to the tracked 3D visual feature points from ARCore.
 3. Update the `OccupancyMap` for any detected obstacles based on the depth map.
+   The occupancy map can also fuse optional model-derived world occupancy
+   priors, allowing modern open-source depth, semantic, or video world models
+   to contribute risk evidence without replacing the geometry-first safety
+   path. See [World Model Obstacle Priors](project_guideline/docs/world_model_obstacle_priors.md).
 4. Use the `ControlSystem` to generate an updated control signal based on the
    current state of the runner relative to the environment.
 
