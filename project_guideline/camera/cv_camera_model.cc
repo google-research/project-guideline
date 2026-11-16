@@ -17,12 +17,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
-#include <opencv2/core/version.hpp>
-#if CV_VERSION_MAJOR < 5
-#include <opencv2/calib3d.hpp>
-#else
 #include <opencv2/geometry/3d.hpp>
-#endif
 #include <opencv2/imgproc.hpp>  // keep include
 #include "Eigen/Core"
 #include "project_guideline/camera/camera_model.h"
